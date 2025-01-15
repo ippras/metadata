@@ -5,6 +5,7 @@ use polars::{io::mmap::MmapBytesReader, prelude::*};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::{
+    borrow::BorrowMut,
     collections::BTreeMap,
     hash::{Hash, Hasher},
     io::Write,
@@ -75,21 +76,32 @@ impl From<Metadata> for BTreeMap<PlSmallStr, PlSmallStr> {
 
 /// MetaDataFrame
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct MetaDataFrame {
-    pub meta: Metadata,
-    pub data: DataFrame,
+pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
+    pub meta: M,
+    pub data: D,
+}
+
+impl<M, D> MetaDataFrame<M, D> {
+    pub fn new(meta: M, data: D) -> Self {
+        Self { meta, data }
+    }
 }
 
 impl MetaDataFrame {
-    pub fn new(meta: Metadata, data: DataFrame) -> Self {
-        Self { meta, data }
-    }
-
     pub fn read(reader: impl MmapBytesReader) -> Result<Self> {
         let mut reader = IpcReader::new(reader);
         let meta = reader.metadata()?.unwrap_or_default();
         let data = reader.finish()?;
         Ok(Self { meta, data })
+    }
+}
+
+impl<D: BorrowMut<DataFrame>> MetaDataFrame<Metadata, D> {
+    pub fn write(mut self, writer: impl Write) -> Result<()> {
+        let mut writer = IpcWriter::new(writer);
+        writer.metadata(self.meta);
+        writer.finish(self.data.borrow_mut())?;
+        Ok(())
     }
 }
 
