@@ -63,7 +63,9 @@ impl From<Metadata> for BTreeMap<PlSmallStr, PlSmallStr> {
         let mut metadata = BTreeMap::new();
         metadata.insert("name".into(), value.name.into());
         metadata.insert("description".into(), value.description.into());
-        metadata.insert("authors".into(), value.authors.join(",").into());
+        if !value.authors.is_empty() {
+            metadata.insert("authors".into(), value.authors.join(",").into());
+        }
         if let Some(version) = value.version {
             metadata.insert("version".into(), version.to_string().into());
         }
