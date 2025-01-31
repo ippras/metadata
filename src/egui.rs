@@ -20,8 +20,12 @@ impl Metadata {
                         ui.label("Name");
                     });
                     row.col(|ui| {
-                        // ui.text_edit_singleline(&mut self.name);
-                        ui.add(TextEdit::singleline(&mut self.name).desired_width(f32::INFINITY));
+                        if ui
+                            .add(TextEdit::singleline(&mut self.name).desired_width(f32::INFINITY))
+                            .lost_focus()
+                        {
+                            self.name = self.name.trim_end().to_owned();
+                        }
                     });
                 });
                 // Description
@@ -30,10 +34,15 @@ impl Metadata {
                         ui.label("Description");
                     });
                     row.col(|ui| {
-                        ui.add(
-                            TextEdit::singleline(&mut self.description)
-                                .desired_width(f32::INFINITY),
-                        );
+                        if ui
+                            .add(
+                                TextEdit::multiline(&mut self.description)
+                                    .desired_width(f32::INFINITY),
+                            )
+                            .lost_focus()
+                        {
+                            self.description = self.description.trim_end().to_owned();
+                        }
                     });
                 });
                 // Authors
@@ -46,7 +55,12 @@ impl Metadata {
                             let mut keep = true;
                             ui.horizontal(|ui| {
                                 keep = !ui.button(MINUS).clicked();
-                                ui.add(TextEdit::singleline(author).desired_width(f32::INFINITY));
+                                if ui
+                                    .add(TextEdit::singleline(author).desired_width(f32::INFINITY))
+                                    .lost_focus()
+                                {
+                                    *author = author.trim_end().to_owned();
+                                }
                             });
                             keep
                         });
