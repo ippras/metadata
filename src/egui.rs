@@ -1,0 +1,101 @@
+use crate::Metadata;
+use egui::{DragValue, TextEdit, Ui};
+use egui_extras::{Column, DatePickerButton, TableBuilder};
+use egui_phosphor::regular::{MINUS, PLUS};
+use semver::Version;
+
+// TAG
+impl Metadata {
+    pub fn show(&mut self, ui: &mut Ui) {
+        ui.style_mut().visuals.collapsing_header_frame = true;
+        let height = ui.spacing().interact_size.y;
+        TableBuilder::new(ui)
+            .resizable(true)
+            .column(Column::auto())
+            .column(Column::remainder())
+            .body(|mut body| {
+                // Name
+                body.row(height, |mut row| {
+                    row.col(|ui| {
+                        ui.label("Name");
+                    });
+                    row.col(|ui| {
+                        // ui.text_edit_singleline(&mut self.name);
+                        ui.add(TextEdit::singleline(&mut self.name).desired_width(f32::INFINITY));
+                    });
+                });
+                // Description
+                body.row(height, |mut row| {
+                    row.col(|ui| {
+                        ui.label("Description");
+                    });
+                    row.col(|ui| {
+                        ui.add(
+                            TextEdit::singleline(&mut self.description)
+                                .desired_width(f32::INFINITY),
+                        );
+                    });
+                });
+                // Authors
+                body.row(height, |mut row| {
+                    row.col(|ui| {
+                        ui.label("Authors");
+                    });
+                    row.col(|ui| {
+                        self.authors.retain_mut(|author| {
+                            let mut keep = true;
+                            ui.horizontal(|ui| {
+                                keep = !ui.button(MINUS).clicked();
+                                ui.add(TextEdit::singleline(author).desired_width(f32::INFINITY));
+                            });
+                            keep
+                        });
+                        if ui.button(PLUS).clicked() {
+                            self.authors.push(String::new());
+                        }
+                    });
+                });
+                // Version
+                body.row(height, |mut row| {
+                    row.col(|ui| {
+                        ui.label("Version");
+                    });
+                    row.col(|ui| {
+                        ui.horizontal(|ui| {
+                            let mut checked = self.version.is_some();
+                            if ui.checkbox(&mut checked, "").changed() {
+                                Some(Version::new(0, 0, 0));
+                                self.version = if checked {
+                                    Some(Version::new(0, 0, 0))
+                                } else {
+                                    None
+                                };
+                            }
+                            if let Some(version) = &mut self.version {
+                                ui.menu_button(version.to_string(), |ui| {
+                                    ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
+                                    ui.horizontal(|ui| {
+                                        ui.add(DragValue::new(&mut version.major));
+                                        ui.add(DragValue::new(&mut version.minor));
+                                        ui.add(DragValue::new(&mut version.patch));
+                                    });
+                                });
+                            }
+                        });
+                    });
+                });
+                // Date
+                body.row(height, |mut row| {
+                    row.col(|ui| {
+                        ui.label("Date");
+                    });
+                    row.col(|ui| {
+                        ui.add(
+                            DatePickerButton::new(self.date.get_or_insert_default())
+                                .show_icon(false),
+                        );
+                    });
+                });
+            });
+    }
+}
