@@ -1,4 +1,5 @@
 use crate::Metadata;
+use chrono::Local;
 use egui::{DragValue, TextEdit, Ui};
 use egui_extras::{Column, DatePickerButton, TableBuilder};
 use egui_phosphor::regular::{MINUS, PLUS};
@@ -78,12 +79,7 @@ impl Metadata {
                         ui.horizontal(|ui| {
                             let mut checked = self.version.is_some();
                             if ui.checkbox(&mut checked, "").changed() {
-                                Some(Version::new(0, 0, 0));
-                                self.version = if checked {
-                                    Some(Version::new(0, 0, 0))
-                                } else {
-                                    None
-                                };
+                                self.version = checked.then_some(Version::new(0, 0, 0));
                             }
                             if let Some(version) = &mut self.version {
                                 ui.menu_button(version.to_string(), |ui| {
@@ -104,10 +100,15 @@ impl Metadata {
                         ui.label("Date");
                     });
                     row.col(|ui| {
-                        ui.add(
-                            DatePickerButton::new(self.date.get_or_insert_default())
-                                .show_icon(false),
-                        );
+                        ui.horizontal(|ui| {
+                            let mut checked = self.date.is_some();
+                            if ui.checkbox(&mut checked, "").changed() {
+                                self.date = checked.then_some(Local::now().date_naive());
+                            }
+                            if let Some(date) = &mut self.date {
+                                ui.add(DatePickerButton::new(date).show_icon(false));
+                            }
+                        });
                     });
                 });
             });
