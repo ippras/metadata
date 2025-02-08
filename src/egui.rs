@@ -25,7 +25,7 @@ impl Metadata {
                             .add(TextEdit::singleline(&mut self.name).desired_width(f32::INFINITY))
                             .lost_focus()
                         {
-                            self.name = self.name.trim_end().to_owned();
+                            self.name = self.name.trim().to_owned();
                         }
                     });
                 });
@@ -42,7 +42,7 @@ impl Metadata {
                             )
                             .lost_focus()
                         {
-                            self.description = self.description.trim_end().to_owned();
+                            self.description = self.description.trim().to_owned();
                         }
                     });
                 });
@@ -60,7 +60,7 @@ impl Metadata {
                                     .add(TextEdit::singleline(author).desired_width(f32::INFINITY))
                                     .lost_focus()
                                 {
-                                    *author = author.trim_end().to_owned();
+                                    *author = author.trim().to_owned();
                                 }
                             });
                             keep
