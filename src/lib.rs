@@ -77,7 +77,7 @@ impl From<Metadata> for BTreeMap<PlSmallStr, PlSmallStr> {
 }
 
 /// MetaDataFrame
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
     pub meta: M,
     pub data: D,
@@ -107,6 +107,8 @@ impl<D: BorrowMut<DataFrame>> MetaDataFrame<Metadata, D> {
     }
 }
 
+impl Eq for MetaDataFrame {}
+
 impl Hash for MetaDataFrame {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.meta.hash(state);
@@ -115,6 +117,12 @@ impl Hash for MetaDataFrame {
                 value.hash(state);
             }
         }
+    }
+}
+
+impl PartialEq for MetaDataFrame {
+    fn eq(&self, other: &Self) -> bool {
+        self.meta == other.meta && self.data.equals_missing(&other.data)
     }
 }
 
