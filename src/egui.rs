@@ -1,25 +1,18 @@
 use crate::Metadata;
 use chrono::Local;
-use egui::{DragValue, Grid, Label, TextEdit, Ui};
+use egui::{DragValue, Grid, Label, Response, TextEdit, Ui};
 use egui_extras::{Column, DatePickerButton, TableBuilder};
 use egui_phosphor::regular::{MINUS, PLUS};
 use semver::Version;
 
-// Metadata
-impl Metadata {
-    pub fn widget(&mut self) -> MetadataWidget<'_> {
-        MetadataWidget::new(self)
-    }
-}
-
 /// Metadata widget
-pub struct MetadataWidget<'a> {
-    metadata: &'a mut Metadata,
+pub struct MetadataWidget<T> {
+    metadata: T,
     writable: bool,
 }
 
-impl<'a> MetadataWidget<'a> {
-    pub fn new(metadata: &'a mut Metadata) -> Self {
+impl<T> MetadataWidget<T> {
+    pub fn new(metadata: T) -> Self {
         Self {
             metadata,
             writable: false,
@@ -27,7 +20,7 @@ impl<'a> MetadataWidget<'a> {
     }
 }
 
-impl MetadataWidget<'_> {
+impl MetadataWidget<&mut Metadata> {
     pub fn writable(self, writable: bool) -> Self {
         Self {
             writable: writable,
@@ -44,35 +37,43 @@ impl MetadataWidget<'_> {
     }
 }
 
+impl MetadataWidget<&Metadata> {
+    pub fn show(self, ui: &mut Ui) {
+        readable(self.metadata, ui);
+    }
+}
+
 /// Readable
-fn readable(metadata: &Metadata, ui: &mut Ui) {
-    Grid::new(ui.next_auto_id()).show(ui, |ui| {
-        ui.label("Name");
-        ui.label(&metadata.name);
-        ui.end_row();
-
-        if !metadata.description.is_empty() {
-            ui.label("Description");
-            ui.add(Label::new(&metadata.description).truncate());
+fn readable(metadata: &Metadata, ui: &mut Ui) -> Response {
+    Grid::new(ui.next_auto_id())
+        .show(ui, |ui| {
+            ui.label("Name");
+            ui.label(&metadata.name);
             ui.end_row();
-        }
 
-        ui.label("Authors");
-        ui.label(metadata.authors.join(", "));
-        ui.end_row();
+            if !metadata.description.is_empty() {
+                ui.label("Description");
+                ui.add(Label::new(&metadata.description).truncate());
+                ui.end_row();
+            }
 
-        if let Some(version) = &metadata.version {
-            ui.label("Version");
-            ui.label(version.to_string());
+            ui.label("Authors");
+            ui.label(metadata.authors.join(", "));
             ui.end_row();
-        }
 
-        if let Some(date) = &metadata.date {
-            ui.label("Date");
-            ui.label(date.to_string());
-            ui.end_row();
-        }
-    });
+            if let Some(version) = &metadata.version {
+                ui.label("Version");
+                ui.label(version.to_string());
+                ui.end_row();
+            }
+
+            if let Some(date) = &metadata.date {
+                ui.label("Date");
+                ui.label(date.to_string());
+                ui.end_row();
+            }
+        })
+        .response
 }
 
 /// Writable

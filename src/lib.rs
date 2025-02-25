@@ -153,5 +153,5 @@ impl<W: Write> IpcWriterExt for IpcWriter<W> {
 }
 
 #[cfg(feature = "egui")]
-mod egui;
+pub mod egui;
 mod error;
