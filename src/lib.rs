@@ -24,6 +24,16 @@ pub struct Metadata {
 }
 
 impl Metadata {
+    pub const fn new() -> Self {
+        Self {
+            name: String::new(),
+            description: String::new(),
+            authors: Vec::new(),
+            version: None,
+            date: None,
+        }
+    }
+
     pub fn title(&self) -> String {
         match &self.version {
             Some(version) => format!("{} {version}", self.name),
@@ -84,7 +94,7 @@ pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
 }
 
 impl<M, D> MetaDataFrame<M, D> {
-    pub fn new(meta: M, data: D) -> Self {
+    pub const fn new(meta: M, data: D) -> Self {
         Self { meta, data }
     }
 }
