@@ -1,6 +1,6 @@
 [package]
 name = "metadata"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Kazakov Giorgi Vladimirovich", "Sidorov Roman Alexandrovich"]
 edition = "2024"
 
@@ -19,6 +19,7 @@ polars = { version = "0.48.1", default-features = false, features = [
 semver = { version = "1.0.26", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive", "std"] }
 thiserror = "2.0.12"
+tracing = "0.1.41"
 
 [features]
 default = ["egui", "ipc"]

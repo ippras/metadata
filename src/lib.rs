@@ -1,9 +1,12 @@
+#![feature(debug_closure_helpers)]
+
 pub use self::error::{Error, Result};
 
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
+    fmt::{Display, from_fn},
     hash::{Hash, Hasher},
     ops::{Deref, DerefMut},
 };
@@ -13,10 +16,33 @@ pub const DESCRIPTION: &str = "description";
 pub const AUTHORS: &str = "authors";
 pub const VERSION: &str = "version";
 pub const DATE: &str = "date";
+pub const DEFAULT_VERSION: &str = "0.0.0";
+pub const DEFAULT_DATE: &str = "1970-01-01";
 
 /// Metadata
 #[derive(Clone, Debug, Default, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Metadata(pub BTreeMap<String, String>);
+
+impl Metadata {
+    pub fn format(&self, separator: &str) -> impl Display {
+        from_fn(move |f| {
+            if let Some(name) = self.get(NAME) {
+                write!(f, "{name}")?;
+            }
+            if let Some(date) = self.get(DATE)
+                && date != DEFAULT_DATE
+            {
+                write!(f, "{separator}{date}")?;
+            }
+            if let Some(version) = self.get(VERSION)
+                && version != DEFAULT_VERSION
+            {
+                write!(f, "{separator}{version}")?;
+            }
+            Ok(())
+        })
+    }
+}
 
 impl Deref for Metadata {
     type Target = BTreeMap<String, String>;
