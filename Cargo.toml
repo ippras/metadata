@@ -1,6 +1,6 @@
 [package]
 name = "metadata"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Kazakov Giorgi Vladimirovich", "Sidorov Roman Alexandrovich"]
 edition = "2024"
 
@@ -12,7 +12,7 @@ egui_extras = { version = "0.31.1", features = [
     "datepicker",
     "serde",
 ], optional = true }
-polars = { version = "0.48.1", default-features = false, features = [
+polars = { version = "0.49.1", default-features = false, features = [
     "ipc",
     "serde",
 ] }
