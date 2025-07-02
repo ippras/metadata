@@ -1,3 +1,0 @@
-= Metadata
-
-Metadata for Apache Arrow link:https://arrow.apache.org/docs/format/IPC.html[IPC] format.

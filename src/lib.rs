@@ -11,13 +11,14 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-pub const NAME: &str = "name";
-pub const DESCRIPTION: &str = "description";
 pub const AUTHORS: &str = "authors";
-pub const VERSION: &str = "version";
 pub const DATE: &str = "date";
-pub const DEFAULT_VERSION: &str = "0.0.0";
+pub const DESCRIPTION: &str = "description";
+pub const NAME: &str = "name";
+pub const VERSION: &str = "version";
+
 pub const DEFAULT_DATE: &str = "1970-01-01";
+pub const DEFAULT_VERSION: &str = "0.0.0";
 
 /// Metadata
 #[derive(Clone, Debug, Default, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
@@ -58,27 +59,6 @@ impl DerefMut for Metadata {
     }
 }
 
-impl From<Arc<BTreeMap<PlSmallStr, PlSmallStr>>> for Metadata {
-    fn from(value: Arc<BTreeMap<PlSmallStr, PlSmallStr>>) -> Self {
-        Self(
-            value
-                .iter()
-                .map(|(key, value)| (key.to_string(), value.to_string()))
-                .collect(),
-        )
-    }
-}
-
-impl From<Metadata> for BTreeMap<PlSmallStr, PlSmallStr> {
-    fn from(value: Metadata) -> Self {
-        value
-            .0
-            .into_iter()
-            .map(|(key, value)| (PlSmallStr::from_string(key), PlSmallStr::from_string(value)))
-            .collect()
-    }
-}
-
 /// MetaDataFrame
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
@@ -92,7 +72,7 @@ impl<M, D> MetaDataFrame<M, D> {
     }
 }
 
-impl Eq for MetaDataFrame {}
+impl<M: PartialEq> Eq for MetaDataFrame<M> {}
 
 impl Hash for MetaDataFrame {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -106,7 +86,7 @@ impl Hash for MetaDataFrame {
     }
 }
 
-impl PartialEq for MetaDataFrame {
+impl<M: PartialEq> PartialEq for MetaDataFrame<M> {
     fn eq(&self, other: &Self) -> bool {
         self.meta == other.meta && self.data.equals_missing(&other.data)
     }
@@ -117,3 +97,5 @@ pub mod egui;
 mod error;
 #[cfg(feature = "ipc")]
 mod ipc;
+#[cfg(feature = "parquet")]
+mod parquet;
