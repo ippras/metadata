@@ -1,3 +1,5 @@
+use std::io;
+
 use polars::prelude::PolarsError;
 use thiserror::Error;
 
@@ -13,4 +15,6 @@ pub enum Error {
     Version(#[from] semver::Error),
     #[error(r#"polars metadata "{0}""#)]
     Polars(#[from] PolarsError),
+    #[error(r#"io "{0}""#)]
+    Io(#[from] io::Error),
 }
