@@ -12,11 +12,7 @@ egui_extras = { version = "0.32.1", features = [
     "datepicker",
     "serde",
 ], optional = true }
-polars = { version = "0.50.0", default-features = false, features = [
-    "ipc",
-    "parquet",
-    "serde",
-] }
+polars = { version = "0.50.0", default-features = false, features = ["serde"] }
 polars-parquet = "0.50.0"
 semver = { version = "1.0.26", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive", "std"] }
@@ -27,5 +23,5 @@ tracing = "0.1.41"
 default = ["egui", "ipc", "parquet"]
 
 egui = ["dep:egui", "dep:egui-phosphor", "dep:egui_extras"]
-ipc = []
+ipc = ["polars/ipc"]
 parquet = ["polars/parquet"]
