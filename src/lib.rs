@@ -60,7 +60,7 @@ impl DerefMut for Metadata {
 }
 
 /// MetaDataFrame
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
 pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
     pub meta: M,
     pub data: D,
