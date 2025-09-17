@@ -43,6 +43,10 @@ impl Metadata {
             Ok(())
         })
     }
+
+    pub fn clear_schema(&mut self) {
+        self.retain(|key, _| key != "ARROW:schema");
+    }
 }
 
 impl Deref for Metadata {
