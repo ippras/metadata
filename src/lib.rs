@@ -21,7 +21,7 @@ pub const DEFAULT_DATE: &str = "1970-01-01";
 pub const DEFAULT_VERSION: &str = "0.0.0";
 
 /// Metadata
-#[derive(Clone, Debug, Default, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Metadata(pub BTreeMap<String, String>);
 
 impl Metadata {
@@ -62,7 +62,7 @@ impl DerefMut for Metadata {
 // impl FromIterator for Metadata
 
 /// MetaDataFrame
-#[derive(Clone, Debug, Default, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
     pub meta: M,
     pub data: D,
@@ -76,17 +76,17 @@ impl<M, D> MetaDataFrame<M, D> {
 
 // impl<M: PartialEq> Eq for MetaDataFrame<M> {}
 
-impl Hash for MetaDataFrame {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.meta.hash(state);
-        assert!(!self.data.should_rechunk());
-        for series in self.data.iter() {
-            for value in series.iter() {
-                value.hash(state);
-            }
-        }
-    }
-}
+// impl Hash for MetaDataFrame<Metadata, DataFrame> {
+//     fn hash<H: Hasher>(&self, state: &mut H) {
+//         self.meta.hash(state);
+//         assert!(!self.data.should_rechunk());
+//         for series in self.data.iter() {
+//             for value in series.iter() {
+//                 value.hash(state);
+//             }
+//         }
+//     }
+// }
 
 // impl<M: PartialEq> PartialEq for MetaDataFrame<M> {
 //     fn eq(&self, other: &Self) -> bool {
