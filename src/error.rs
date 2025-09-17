@@ -1,6 +1,4 @@
 use std::io;
-
-use polars::prelude::PolarsError;
 use thiserror::Error;
 
 /// Result
@@ -13,8 +11,6 @@ pub enum Error {
     Date(#[from] chrono::ParseError),
     #[error(r#"metadata version "{0}""#)]
     Version(#[from] semver::Error),
-    #[error(r#"polars metadata "{0}""#)]
-    Polars(#[from] PolarsError),
     #[error(r#"io "{0}""#)]
     Io(#[from] io::Error),
 }

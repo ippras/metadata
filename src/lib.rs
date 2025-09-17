@@ -1,27 +1,25 @@
 #![feature(debug_closure_helpers)]
 
-pub use self::error::{Error, Result};
+// pub use self::error::{Error, Result};
 
-use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
     fmt::{Display, from_fn},
-    hash::{Hash, Hasher},
     ops::{Deref, DerefMut},
 };
 
-pub const AUTHORS: &str = "authors";
-pub const DATE: &str = "date";
-pub const DESCRIPTION: &str = "description";
-pub const NAME: &str = "name";
-pub const VERSION: &str = "version";
+pub const AUTHORS: &str = "Authors";
+pub const DATE: &str = "Date";
+pub const DESCRIPTION: &str = "Description";
+pub const NAME: &str = "Name";
+pub const VERSION: &str = "Version";
 
 pub const DEFAULT_DATE: &str = "1970-01-01";
 pub const DEFAULT_VERSION: &str = "0.0.0";
 
 /// Metadata
-#[derive(Clone, Debug, Default, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Metadata(pub BTreeMap<String, String>);
 
 impl Metadata {
@@ -59,43 +57,14 @@ impl DerefMut for Metadata {
     }
 }
 
-/// MetaDataFrame
-#[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
-pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
-    pub meta: M,
-    pub data: D,
-}
-
-impl<M, D> MetaDataFrame<M, D> {
-    pub const fn new(meta: M, data: D) -> Self {
-        Self { meta, data }
-    }
-}
-
-impl<M: PartialEq> Eq for MetaDataFrame<M> {}
-
-impl Hash for MetaDataFrame {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.meta.hash(state);
-        assert!(!self.data.should_rechunk());
-        for series in self.data.iter() {
-            for value in series.iter() {
-                value.hash(state);
-            }
-        }
-    }
-}
-
-impl<M: PartialEq> PartialEq for MetaDataFrame<M> {
-    fn eq(&self, other: &Self) -> bool {
-        self.meta == other.meta && self.data.equals_missing(&other.data)
+impl FromIterator<(String, String)> for Metadata {
+    fn from_iter<T: IntoIterator<Item = (String, String)>>(iter: T) -> Self {
+        Self(BTreeMap::from_iter(iter))
     }
 }
 
 #[cfg(feature = "egui")]
 pub mod egui;
-mod error;
-#[cfg(feature = "ipc")]
-mod ipc;
-#[cfg(feature = "parquet")]
-mod parquet;
+// mod error;
+#[cfg(feature = "polars")]
+pub mod polars;
