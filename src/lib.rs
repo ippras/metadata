@@ -59,8 +59,10 @@ impl DerefMut for Metadata {
     }
 }
 
+// impl FromIterator for Metadata
+
 /// MetaDataFrame
-#[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
     pub meta: M,
     pub data: D,
@@ -72,7 +74,7 @@ impl<M, D> MetaDataFrame<M, D> {
     }
 }
 
-impl<M: PartialEq> Eq for MetaDataFrame<M> {}
+// impl<M: PartialEq> Eq for MetaDataFrame<M> {}
 
 impl Hash for MetaDataFrame {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -86,16 +88,16 @@ impl Hash for MetaDataFrame {
     }
 }
 
-impl<M: PartialEq> PartialEq for MetaDataFrame<M> {
-    fn eq(&self, other: &Self) -> bool {
-        self.meta == other.meta && self.data.equals_missing(&other.data)
-    }
-}
+// impl<M: PartialEq> PartialEq for MetaDataFrame<M> {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.meta == other.meta && self.data.equals_missing(&other.data)
+//     }
+// }
 
 #[cfg(feature = "egui")]
 pub mod egui;
 mod error;
-#[cfg(feature = "ipc")]
-mod ipc;
+// #[cfg(feature = "ipc")]
+// mod ipc;
 #[cfg(feature = "parquet")]
 mod parquet;

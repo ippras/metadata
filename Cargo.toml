@@ -1,6 +1,6 @@
 [package]
 name = "metadata"
-version = "0.8.2"
+version = "0.7.0"
 authors = ["Kazakov Giorgi Vladimirovich", "Sidorov Roman Alexandrovich"]
 edition = "2024"
 
@@ -12,7 +12,11 @@ egui_extras = { version = "0.32.3", features = [
     "datepicker",
     "serde",
 ], optional = true }
-polars = { version = "0.51.0", default-features = false, features = ["serde"] }
+polars = { version = "0.51.0", default-features = false, features = [
+    "ipc",
+    "parquet",
+    "serde",
+] }
 polars-parquet = "0.51.0"
 semver = { version = "1.0.27", features = ["serde"] }
 serde = { version = "1.0.225", features = ["derive", "std"] }
@@ -23,5 +27,5 @@ tracing = "0.1.41"
 default = ["egui", "ipc", "parquet"]
 
 egui = ["dep:egui", "dep:egui-phosphor", "dep:egui_extras"]
-ipc = ["polars/ipc"]
+ipc = []
 parquet = ["polars/parquet"]
