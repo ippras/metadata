@@ -41,16 +41,16 @@ impl MetaDataFrame {
 }
 
 impl<D: BorrowMut<DataFrame>> MetaDataFrame<Metadata, D> {
-    pub fn write_parquet(mut self, writer: impl Write) -> Result<()> {
+    pub fn write_parquet(&mut self, writer: impl Write) -> Result<()> {
         let writer = ParquetWriter::new(writer);
         writer
             .with_key_value_metadata(Some(KeyValueMetadata::Static(
                 self.meta
                     .0
-                    .into_iter()
+                    .iter()
                     .map(|(key, value)| KeyValue {
-                        key,
-                        value: Some(value),
+                        key: key.clone(),
+                        value: Some(value.clone()),
                     })
                     .collect(),
             )))
