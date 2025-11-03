@@ -1,6 +1,6 @@
 [package]
 name = "metadata"
-version = "0.7.0"
+version = "0.9.0"
 authors = ["Kazakov Giorgi Vladimirovich", "Sidorov Roman Alexandrovich"]
 edition = "2024"
 
