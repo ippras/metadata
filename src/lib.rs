@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fmt::{Display, from_fn},
+    fmt::{Debug, Display, Formatter, from_fn},
     ops::{Deref, DerefMut},
 };
 
@@ -23,23 +23,42 @@ pub const DEFAULT_VERSION: &str = "0.0.0";
 pub struct Metadata(pub BTreeMap<String, String>);
 
 impl Metadata {
-    pub fn format(&self, separator: &str) -> impl Display {
+    pub fn format(&self, separator: &str) -> impl Debug + Display {
         from_fn(move |f| {
             if let Some(name) = self.get(NAME) {
                 write!(f, "{name}")?;
+            }
+            if let Some(version) = self.get(VERSION)
+                && version != DEFAULT_VERSION
+            {
+                write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
             }
             if let Some(date) = self.get(DATE)
                 && date != DEFAULT_DATE
             {
                 write!(f, "{separator}{date}")?;
             }
-            if let Some(version) = self.get(VERSION)
-                && version != DEFAULT_VERSION
-            {
-                write!(f, "{separator}{version}")?;
-            }
             Ok(())
         })
+    }
+}
+
+impl Display for Metadata {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        if let Some(name) = self.get(NAME) {
+            write!(f, "{name}")?;
+        }
+        if let Some(version) = self.get(VERSION)
+            && version != DEFAULT_VERSION
+        {
+            write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
+        }
+        if let Some(date) = self.get(DATE)
+            && date != DEFAULT_DATE
+        {
+            write!(f, "{date}")?;
+        }
+        Ok(())
     }
 }
 

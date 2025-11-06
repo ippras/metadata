@@ -510,11 +510,11 @@ dependencies = [
 
 [[package]]
 name = "ecolor"
-version = "0.33.0"
+version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adf31f99fad93fe83c1055b92b5c1b135f1ecfa464789817c372000e768d4bd1"
+checksum = "084980ebede2fb1ad6c4f54285b3e489052ef2b6aa4016e4c19349417adc75c5"
 dependencies = [
- "emath 0.33.0",
+ "emath 0.33.2",
  "serde",
 ]
 
@@ -536,15 +536,15 @@ dependencies = [
 
 [[package]]
 name = "egui"
-version = "0.33.0"
+version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab9b5d3376c79439f53a78bf7da1e3c0b862ffa3e29f46ab0f3e107430f2e576"
+checksum = "b75645894de4ca1695ab3ab7201c7953bb95c1725aafeefa6822dc901ad2a81b"
 dependencies = [
  "accesskit",
  "ahash",
  "bitflags",
- "emath 0.33.0",
- "epaint 0.33.0",
+ "emath 0.33.2",
+ "epaint 0.33.2",
  "log",
  "nohash-hasher",
  "profiling",
@@ -564,13 +564,13 @@ dependencies = [
 
 [[package]]
 name = "egui_extras"
-version = "0.33.0"
+version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdced1964ad8a02a116b1307f7b4f73dbe408c5f53dcdd488f527609f261da60"
+checksum = "550e844e608e356f4ad6843c510aa9bb5838b427e4700ed0056e9746ceeed866"
 dependencies = [
  "ahash",
  "chrono",
- "egui 0.33.0",
+ "egui 0.33.2",
  "enum-map",
  "log",
  "mime_guess2",
@@ -592,9 +592,9 @@ checksum = "45fd7bc25f769a3c198fe1cf183124bf4de3bd62ef7b4f1eaf6b08711a3af8db"
 
 [[package]]
 name = "emath"
-version = "0.33.0"
+version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c615516cdceec867065f20d7db13d8eb8aedd65c9e32cc0c7c379380fa42e6e8"
+checksum = "0e561352ae95c22ad179fb56c38d6e6eecd86cf4925cf5c70e738dd01df9b620"
 dependencies = [
  "serde",
 ]
@@ -648,14 +648,14 @@ dependencies = [
 
 [[package]]
 name = "epaint"
-version = "0.33.0"
+version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9926b9500ccb917adb070207ec722dd8ea78b8321f94a85ebec776f501f2930c"
+checksum = "a909ce8cee63e8350fb0c251ad39277a5b24f19add60787e84a3b3ab3f2bd83a"
 dependencies = [
  "ab_glyph",
  "ahash",
- "ecolor 0.33.0",
- "emath 0.33.0",
+ "ecolor 0.33.2",
+ "emath 0.33.2",
  "epaint_default_fonts",
  "log",
  "nohash-hasher",
@@ -666,9 +666,9 @@ dependencies = [
 
 [[package]]
 name = "epaint_default_fonts"
-version = "0.33.0"
+version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66054d943c66715c6003a27a3dc152d87cadf714ef2597ccd79f550413009b97"
+checksum = "ad9649446c23368ae138716910e3e28143995691b598fbb9de16b42b0722cbcc"
 
 [[package]]
 name = "equivalent"
@@ -1466,6 +1466,7 @@ dependencies = [
 name = "metadata"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 version = "0.8.2"
 =======
 version = "0.7.0"
@@ -1473,9 +1474,12 @@ version = "0.7.0"
 =======
 version = "0.9.0"
 >>>>>>> f5b429a (Bump version to 0.9.0)
+=======
+version = "0.9.1"
+>>>>>>> 1383aa4 (Bump version to 0.9.1)
 dependencies = [
  "chrono",
- "egui 0.33.0",
+ "egui 0.33.2",
  "egui-phosphor",
  "egui_extras",
  "polars",
@@ -1804,8 +1808,7 @@ dependencies = [
 [[package]]
 name = "polars"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bc9ea901050c1bb8747ee411bc7fbb390f3b399931e7484719512965132a248"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
@@ -1820,8 +1823,7 @@ dependencies = [
 [[package]]
 name = "polars-arrow"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33d3fe43f8702cf7899ff3d516c2e5f7dc84ee6f6a3007e1a831a0ff87940704"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "bitflags",
  "bytemuck",
@@ -1871,8 +1873,7 @@ dependencies = [
 [[package]]
 name = "polars-compute"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d29cc7497378dee3a002f117e0b4e16b7cbe6c8ed3da16a0229c89294af7c3bf"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "atoi_simd",
  "bytemuck",
@@ -1904,8 +1905,7 @@ dependencies = [
 [[package]]
 name = "polars-core"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48409b7440cb1a4aa84953fe3a4189dfbfb300a3298266a92a37363476641e40"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "bitflags",
  "boxcar",
@@ -1947,8 +1947,7 @@ dependencies = [
 [[package]]
 name = "polars-dtype"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7007e9e8b7b657cbd339b65246af7e87f5756ee9a860119b9424ddffd2aaf133"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "boxcar",
 <<<<<<< HEAD
@@ -1966,8 +1965,7 @@ dependencies = [
 [[package]]
 name = "polars-error"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a6be22566c89f6405f553bfdb7c8a6cb20ec51b35f3172de9a25fa3e252d85"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "parking_lot",
  "polars-arrow-format",
@@ -2200,8 +2198,7 @@ dependencies = [
 >>>>>>> 5d47637 (Bunp egui version to 0.33.0)
 name = "polars-row"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a18d232f25b83032e280a279a1f40beb8a6f8fc43907b13dc07b1c56f3b11eea"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "bitflags",
  "bytemuck",
@@ -2215,8 +2212,7 @@ dependencies = [
 [[package]]
 name = "polars-schema"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f73e21d429ae1c23f442b0220ccfe773a9734a44e997b5062a741842909d9441"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "indexmap",
  "polars-error",
@@ -2321,8 +2317,7 @@ dependencies = [
 >>>>>>> 5d47637 (Bunp egui version to 0.33.0)
 name = "polars-utils"
 version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "667c1bc2d2313f934d711f6e3b58d8d9f80351d14ea60af936a26b7dfb06e309"
+source = "git+https://github.com/pola-rs/polars?rev=fea5335#fea5335e5befc493af208a34c6b4162a1cbd2798"
 dependencies = [
  "bincode",
  "bytemuck",
