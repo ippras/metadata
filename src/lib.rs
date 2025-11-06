@@ -28,15 +28,15 @@ impl Metadata {
             if let Some(name) = self.get(NAME) {
                 write!(f, "{name}")?;
             }
+            if let Some(version) = self.get(VERSION)
+                && version != DEFAULT_VERSION
+            {
+                write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
+            }
             if let Some(date) = self.get(DATE)
                 && date != DEFAULT_DATE
             {
                 write!(f, "{separator}{date}")?;
-            }
-            if let Some(version) = self.get(VERSION)
-                && version != DEFAULT_VERSION
-            {
-                write!(f, "{separator}{version}")?;
             }
             Ok(())
         })
@@ -56,7 +56,7 @@ impl Display for Metadata {
         if let Some(date) = self.get(DATE)
             && date != DEFAULT_DATE
         {
-            write!(f, ".{date}")?;
+            write!(f, "{date}")?;
         }
         Ok(())
     }
