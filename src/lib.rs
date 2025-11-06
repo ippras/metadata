@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fmt::{Display, from_fn},
+    fmt::{Display, Formatter, from_fn},
     ops::{Deref, DerefMut},
 };
 
@@ -40,6 +40,25 @@ impl Metadata {
             }
             Ok(())
         })
+    }
+}
+
+impl Display for Metadata {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        if let Some(name) = self.get(NAME) {
+            write!(f, "{name}")?;
+        }
+        if let Some(version) = self.get(VERSION)
+            && version != DEFAULT_VERSION
+        {
+            write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
+        }
+        if let Some(date) = self.get(DATE)
+            && date != DEFAULT_DATE
+        {
+            write!(f, ".{date}")?;
+        }
+        Ok(())
     }
 }
 
