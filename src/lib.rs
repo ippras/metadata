@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fmt::{Display, Formatter, from_fn},
+    fmt::{Debug, Display, Formatter, from_fn},
     ops::{Deref, DerefMut},
 };
 
@@ -23,7 +23,7 @@ pub const DEFAULT_VERSION: &str = "0.0.0";
 pub struct Metadata(pub BTreeMap<String, String>);
 
 impl Metadata {
-    pub fn format(&self, separator: &str) -> impl Display {
+    pub fn format(&self, separator: &str) -> impl Debug + Display {
         from_fn(move |f| {
             if let Some(name) = self.get(NAME) {
                 write!(f, "{name}")?;
