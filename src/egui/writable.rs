@@ -1,0 +1,351 @@
+// TODO: TextEdit::singleline lost_focus: https://github.com/emilk/egui/issues/2142
+
+use crate::{
+    AUTHORS, DATE, DESCRIPTION, Metadata, NAME, PARAMETERS, VERSION,
+    egui::{DATE_FORMAT, EQUAL, MetadataOptions, SEMICOLON},
+};
+use chrono::{NaiveDate, ParseError};
+use egui::{
+    Button, DragValue, Event, Grid, PopupCloseBehavior, TextEdit, Ui, Widget,
+    cache::{ComputerMut, FrameCache},
+    containers::menu::{MenuButton, MenuConfig},
+};
+use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
+use egui_phosphor::regular::{CARET_DOWN, CARET_UP, MINUS, PLUS, SORT_ASCENDING};
+use itertools::Itertools;
+use semver::Version;
+use tracing::{error, instrument};
+
+/// Writable metadata widget
+pub(super) struct Writable<'a> {
+    metadata: &'a mut Metadata,
+    options: MetadataOptions,
+}
+
+impl<'a> Writable<'a> {
+    pub(super) fn new(metadata: &'a mut Metadata, options: MetadataOptions) -> Self {
+        Self { metadata, options }
+    }
+}
+
+impl Writable<'_> {
+    pub(super) fn show(&mut self, ui: &mut Ui) {
+        ui.style_mut().visuals.collapsing_header_frame = true;
+        let height = ui.spacing().interact_size.y;
+        TableBuilder::new(ui)
+            .resizable(false)
+            .column(Column::auto())
+            .column(Column::remainder())
+            .body(|mut body| {
+                // Name
+                if self.options.name {
+                    body.key_value(height, "Name", |ui| name(self.metadata, ui));
+                }
+                // Description
+                if self.options.description {
+                    body.key_value(height, "Description", |ui| description(self.metadata, ui));
+                }
+                // Authors
+                if self.options.authors {
+                    body.key_value(height, "Authors", |ui| authors(self.metadata, ui));
+                }
+                // Parameters
+                if self.options.parameters {
+                    body.key_value(height, "Parameters", |ui| parameters(self.metadata, ui));
+                }
+                // Version
+                if self.options.version {
+                    body.key_value(height, "Version", |ui| version(self.metadata, ui));
+                }
+                // Date
+                if self.options.date {
+                    body.key_value(height, "Date", |ui| date(self.metadata, ui));
+                }
+            });
+    }
+}
+
+fn authors(metadata: &mut Metadata, ui: &mut Ui) {
+    let entry = metadata.entry(AUTHORS.to_owned()).or_default();
+    let mut authors = ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(entry));
+    let mut changed = false;
+    authors.retain_mut(|author| {
+        let mut keep = true;
+        ui.horizontal(|ui| {
+            keep = !ui.button(MINUS).clicked();
+            changed |= !keep;
+            let response = TextEdit::singleline(author).ui(ui);
+            changed |= response.changed();
+            if response.lost_focus() || response.clicked_elsewhere() {
+                *author = author.trim().to_owned();
+                changed = true;
+            }
+        });
+        keep
+    });
+    if changed {
+        *entry = authors.join(SEMICOLON);
+    }
+    ui.horizontal(|ui| {
+        if ui.button(PLUS).clicked() {
+            entry.push_str(SEMICOLON);
+        }
+        if ui.button(SORT_ASCENDING).clicked() {
+            *entry = entry.split(SEMICOLON).sorted().join(SEMICOLON);
+        }
+    });
+}
+
+fn date(metadata: &mut Metadata, ui: &mut Ui) {
+    ui.horizontal(|ui| {
+        let entry = metadata.entry(DATE.to_owned()).or_default();
+        let mut date = parse_date(entry).unwrap_or_else(|_| {
+            let date = NaiveDate::default();
+            *entry = date.to_string();
+            date
+        });
+        let response = DatePickerButton::new(&mut date).show_icon(false).ui(ui);
+        if response.changed() {
+            *entry = date.to_string();
+        }
+        // Focus
+        if response.hovered() && ui.input(|input| input.modifiers.ctrl && input.modifiers.shift) {
+            response.request_focus();
+        }
+        // Paste
+        if response.has_focus() {
+            ui.input(|input| {
+                for event in &input.raw.events {
+                    if let Event::Paste(text) = event {
+                        if let Ok(date) = parse_date(text) {
+                            *entry = date.to_string();
+                        }
+                    }
+                }
+            });
+        }
+        // response.context_menu(|ui| {
+        //     if ui.button((CLIPBOARD_TEXT, "Paste")).clicked() {
+        //         ui.input(|input| {
+        //             // TODO
+        //         });
+        //     }
+        // });
+    });
+}
+
+fn description(metadata: &mut Metadata, ui: &mut Ui) {
+    let entry = metadata.entry(DESCRIPTION.to_owned()).or_default();
+    let response = TextEdit::multiline(entry).ui(ui);
+    if response.lost_focus() || response.clicked_elsewhere() {
+        *entry = entry.trim().to_owned();
+    }
+}
+
+fn name(metadata: &mut Metadata, ui: &mut Ui) {
+    let entry = metadata.entry(NAME.to_owned()).or_default();
+    let response = TextEdit::singleline(entry).ui(ui);
+    if response.lost_focus() || response.clicked_elsewhere() {
+        *entry = entry.trim().to_owned();
+    }
+}
+
+fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
+    let entry = metadata.entry(PARAMETERS.to_owned()).or_default();
+    let mut parameters =
+        ui.memory_mut(|memory| memory.caches.cache::<ParametersComputed>().get(entry));
+    let mut changed = false;
+    parameters.retain_mut(|(name, value)| {
+        let mut keep = true;
+        let desired_width = ui.spacing().text_edit_width / 2.0;
+        ui.horizontal(|ui| {
+            keep = !ui.button(MINUS).clicked();
+            changed |= !keep;
+            let response = TextEdit::singleline(name)
+                .desired_width(desired_width)
+                .ui(ui);
+            changed |= response.changed();
+            if response.lost_focus() || response.clicked_elsewhere() {
+                *name = name.trim().to_owned();
+                changed = true;
+            }
+            let checked = value.is_some();
+            let response = ui.selectable_label(checked, EQUAL);
+            if response.clicked() {
+                *value = if checked { None } else { Some(String::new()) };
+            }
+            if let Some(value) = value {
+                let response = TextEdit::singleline(value)
+                    .desired_width(desired_width)
+                    .ui(ui);
+                changed |= response.changed();
+                if response.lost_focus() || response.clicked_elsewhere() {
+                    *value = value.trim().to_owned();
+                    changed = true;
+                }
+            }
+        });
+        keep
+    });
+    if changed {
+        *entry = parameters
+            .into_iter()
+            .format_with(SEMICOLON, |(name, value), f| {
+                if let Some(value) = value {
+                    f(&format_args!("{name}{EQUAL}{value}"))
+                } else {
+                    f(&name)
+                }
+            })
+            .to_string();
+    }
+    ui.horizontal(|ui| {
+        if ui.button(PLUS).clicked() {
+            entry.push_str(SEMICOLON);
+        }
+        if ui.button(SORT_ASCENDING).clicked() {
+            *entry = entry.split(SEMICOLON).sorted().join(SEMICOLON);
+        }
+    });
+}
+
+fn version(metadata: &mut Metadata, ui: &mut Ui) {
+    let entry = metadata.entry(VERSION.to_owned()).or_default();
+    let mut version = Version::parse(entry).unwrap_or_else(|error| {
+        error!(%error);
+        let version = Version::new(0, 0, 0);
+        *entry = version.to_string();
+        version
+    });
+    let mut changed = false;
+    MenuButton::new(version.to_string())
+        .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
+        .ui(ui, |ui| {
+            ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
+            Grid::new(ui.next_auto_id()).show(ui, |ui| {
+                let size = ui.spacing().interact_size;
+                if Button::new(CARET_UP)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.major = version.major.saturating_add(1);
+                    changed = true;
+                }
+                if Button::new(CARET_UP)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.minor = version.minor.saturating_add(1);
+                    changed = true;
+                }
+                if Button::new(CARET_UP)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.patch = version.patch.saturating_add(1);
+                    changed = true;
+                }
+                ui.end_row();
+                changed |= DragValue::new(&mut version.major).ui(ui).changed();
+                changed |= DragValue::new(&mut version.minor).ui(ui).changed();
+                changed |= DragValue::new(&mut version.patch).ui(ui).changed();
+                ui.end_row();
+                if Button::new(CARET_DOWN)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.major = version.major.saturating_sub(1);
+                    changed = true;
+                }
+                if Button::new(CARET_DOWN)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.minor = version.minor.saturating_sub(1);
+                    changed = true;
+                }
+                if Button::new(CARET_DOWN)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.patch = version.patch.saturating_sub(1);
+                    changed = true;
+                }
+            });
+        });
+    if changed {
+        *entry = version.to_string();
+    }
+}
+
+// fn parse_parameters(key: &str) -> impl Iterator<Item = (&str, Option<&str>)> {
+//     key.split(SEMICOLON)
+//         .map(|parameter| match parameter.split_once(EQUAL) {
+//             Some((name, value)) => (name, Some(value)),
+//             None => (parameter, None),
+//         })
+// }
+
+#[instrument(err)]
+fn parse_date(key: &str) -> Result<NaiveDate, ParseError> {
+    NaiveDate::parse_from_str(key, DATE_FORMAT)
+}
+
+/// Extension methods for [`TableBody`]
+trait TableBodyExt {
+    fn key_value(&mut self, height: f32, key: &str, value: impl FnOnce(&mut Ui));
+}
+
+impl<'a> TableBodyExt for TableBody<'a> {
+    fn key_value(&mut self, height: f32, key: &str, value: impl FnOnce(&mut Ui)) {
+        self.row(height, |mut row| {
+            row.col(|ui| {
+                ui.label(key);
+            });
+            row.col(value);
+        });
+    }
+}
+
+/// Authors computed
+type AuthorsComputed = FrameCache<Vec<String>, AuthorsComputer>;
+
+/// Authors computer
+#[derive(Default)]
+struct AuthorsComputer;
+
+impl ComputerMut<&str, Vec<String>> for AuthorsComputer {
+    fn compute(&mut self, key: &str) -> Vec<String> {
+        key.split(SEMICOLON).map(ToOwned::to_owned).collect()
+    }
+}
+
+/// Parameters computed
+type ParametersComputed = FrameCache<Vec<(String, Option<String>)>, ParametersComputer>;
+
+/// Parameters computer
+#[derive(Default)]
+struct ParametersComputer;
+
+impl ComputerMut<&str, Vec<(String, Option<String>)>> for ParametersComputer {
+    fn compute(&mut self, key: &str) -> Vec<(String, Option<String>)> {
+        key.split(SEMICOLON)
+            .map(|parameter| match parameter.split_once(EQUAL) {
+                Some((name, value)) => (name.to_owned(), Some(value.to_owned())),
+                None => (parameter.to_owned(), None),
+            })
+            .collect()
+    }
+}

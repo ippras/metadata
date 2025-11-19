@@ -1,24 +1,25 @@
 [package]
 name = "metadata"
-version = "0.9.1"
+version = "0.9.2"
 authors = ["Kazakov Giorgi Vladimirovich", "Sidorov Roman Alexandrovich"]
 edition = "2024"
 
 [dependencies]
-chrono = { version = "0.4.42", features = ["serde"] }
-egui = { version = "0.33.2", optional = true }
-egui-phosphor = { version = "0.10.0", optional = true }
-egui_extras = { version = "0.33.2", features = [
+chrono = { version = "0.4.43", features = ["serde"] }
+egui = { version = "0.33.3", optional = true }
+egui-phosphor = { version = "0.11.0", optional = true }
+egui_extras = { version = "0.33.3", features = [
     "datepicker",
     "serde",
 ], optional = true }
-polars = { git = "https://github.com/pola-rs/polars", rev = "fea5335", default-features = false, features = [
+itertools = "0.14.0"
+polars = { git = "https://github.com/pola-rs/polars", rev = "099564e", default-features = false, features = [
     "serde",
 ], optional = true }
 semver = { version = "1.0.27", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive", "std"] }
-thiserror = "2.0.17"
-tracing = "0.1.41"
+thiserror = "2.0.18"
+tracing = "0.1.44"
 
 [features]
 default = ["egui", "polars"]
