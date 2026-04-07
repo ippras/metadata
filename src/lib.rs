@@ -108,7 +108,7 @@ pub mod polars;
 #[cfg(test)]
 mod test {
     use super::*;
-    use chrono::NaiveDate;
+    use jiff::civil::Date;
     use semver::Version;
 
     #[test]
@@ -125,7 +125,8 @@ mod test {
             format!("InitialTemperature={};TemperatureStep={}", 0, 1),
         );
         meta.insert(VERSION.to_owned(), Version::new(0, 0, 1).to_string());
-        meta.insert(DATE.to_owned(), NaiveDate::default().to_string());
+        meta.insert(DATE.to_owned(), Date::default().to_string());
         println!("meta: {meta}");
+        println!("meta: {}", meta.format("."));
     }
 }

@@ -2,9 +2,8 @@
 
 use crate::{
     AUTHORS, DATE, DESCRIPTION, Metadata, NAME, PARAMETERS, VERSION,
-    egui::{DATE_FORMAT, EQUAL, MetadataOptions, SEMICOLON},
+    egui::{EQUAL, MetadataOptions, SEMICOLON},
 };
-use chrono::{NaiveDate, ParseError};
 use egui::{
     Button, DragValue, Event, Grid, PopupCloseBehavior, TextEdit, Ui, Widget,
     cache::{ComputerMut, FrameCache},
@@ -13,6 +12,7 @@ use egui::{
 use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
 use egui_phosphor::regular::{CARET_DOWN, CARET_UP, MINUS, PLUS, SORT_ASCENDING};
 use itertools::Itertools;
+use jiff::civil::Date;
 use semver::Version;
 use tracing::{error, instrument};
 
@@ -67,7 +67,8 @@ impl Writable<'_> {
 
 fn authors(metadata: &mut Metadata, ui: &mut Ui) {
     let entry = metadata.entry(AUTHORS.to_owned()).or_default();
-    let mut authors = ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(entry));
+    let mut authors =
+        ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(entry).clone());
     let mut changed = false;
     authors.retain_mut(|author| {
         let mut keep = true;
@@ -100,7 +101,7 @@ fn date(metadata: &mut Metadata, ui: &mut Ui) {
     ui.horizontal(|ui| {
         let entry = metadata.entry(DATE.to_owned()).or_default();
         let mut date = parse_date(entry).unwrap_or_else(|_| {
-            let date = NaiveDate::default();
+            let date = Date::default();
             *entry = date.to_string();
             date
         });
@@ -152,8 +153,13 @@ fn name(metadata: &mut Metadata, ui: &mut Ui) {
 
 fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
     let entry = metadata.entry(PARAMETERS.to_owned()).or_default();
-    let mut parameters =
-        ui.memory_mut(|memory| memory.caches.cache::<ParametersComputed>().get(entry));
+    let mut parameters = ui.memory_mut(|memory| {
+        memory
+            .caches
+            .cache::<ParametersComputed>()
+            .get(entry)
+            .clone()
+    });
     let mut changed = false;
     parameters.retain_mut(|(name, value)| {
         let mut keep = true;
@@ -299,8 +305,8 @@ fn version(metadata: &mut Metadata, ui: &mut Ui) {
 // }
 
 #[instrument(err)]
-fn parse_date(key: &str) -> Result<NaiveDate, ParseError> {
-    NaiveDate::parse_from_str(key, DATE_FORMAT)
+fn parse_date(key: &str) -> Result<Date, jiff::Error> {
+    key.parse()
 }
 
 /// Extension methods for [`TableBody`]

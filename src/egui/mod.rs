@@ -5,7 +5,6 @@ use crate::{
 use egui::{Response, Ui};
 use std::borrow::{Borrow, BorrowMut};
 
-pub const DATE_FORMAT: &str = "%Y-%m-%d";
 pub const EQUAL: &str = "=";
 pub const SEMICOLON: &str = ";";
 
