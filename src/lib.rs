@@ -110,9 +110,9 @@ pub struct Format<'a> {
     metadata: &'a Metadata,
     #[builder(default)]
     date: bool,
-    #[builder(default)]
+    #[builder(default = true)]
     parameters: bool,
-    #[builder(default)]
+    #[builder(default = true)]
     version: bool,
 }
 
