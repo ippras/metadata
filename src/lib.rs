@@ -6,6 +6,7 @@ use std::{
     fmt::{Debug, Display, Formatter, from_fn},
     ops::{Deref, DerefMut},
 };
+use typed_builder::TypedBuilder;
 
 pub const ID_SALT: &str = "Metadata";
 
@@ -31,6 +32,10 @@ impl Metadata {
 }
 
 impl Metadata {
+    pub fn display(&self) -> FormatBuilder<'_, ((&Metadata,), (), (), ())> {
+        Format::builder().metadata(self)
+    }
+
     pub fn format(&self, separator: &str) -> impl Debug + Display {
         from_fn(move |f| {
             if let Some(name) = self.get(NAME) {
@@ -97,6 +102,44 @@ impl DerefMut for Metadata {
 impl FromIterator<(String, String)> for Metadata {
     fn from_iter<T: IntoIterator<Item = (String, String)>>(iter: T) -> Self {
         Self(BTreeMap::from_iter(iter))
+    }
+}
+
+#[derive(Clone, Copy, Debug, TypedBuilder)]
+pub struct Format<'a> {
+    metadata: &'a Metadata,
+    #[builder(default)]
+    date: bool,
+    #[builder(default)]
+    parameters: bool,
+    #[builder(default)]
+    version: bool,
+}
+
+impl Display for Format<'_> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        if let Some(name) = self.metadata.get(NAME) {
+            write!(f, "{name}")?;
+        }
+        if self.parameters
+            && let Some(parameters) = self.metadata.get(PARAMETERS)
+            && !parameters.is_empty()
+        {
+            write!(f, "{{{parameters}}}")?;
+        }
+        if self.version
+            && let Some(version) = self.metadata.get(VERSION)
+            && version != DEFAULT_VERSION
+        {
+            write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
+        }
+        if self.date
+            && let Some(date) = self.metadata.get(DATE)
+            && date != DEFAULT_DATE
+        {
+            write!(f, "{date}")?;
+        }
+        Ok(())
     }
 }
 

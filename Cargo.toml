@@ -20,6 +20,7 @@ semver = { version = "1.0.28", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive", "std"] }
 thiserror = "2.0.18"
 tracing = "0.1.44"
+typed-builder = "0.23.2"
 
 [features]
 default = ["egui", "polars"]
