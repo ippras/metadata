@@ -1,0 +1,12 @@
+FAE_Biodiesel = Biodiesel
+    .hover = Biodiesel expressions
+FAE_Metabolic = Metabolic
+    .hover = Metabolic expressions
+FAE_Nutritional = Nutritional
+    .hover = Nutritional expressions
+FAE_Primitive = Primitive
+    .hover = Primitive
+FAE_Ratio = Ratio
+    .hover = Ratio expressions
+FAE_Sum = Sum
+    .hover = Sum expressions

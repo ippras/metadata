@@ -1,7 +1,11 @@
 use crate::{
-    AUTHORS, DATE, DESCRIPTION, Metadata, NAME, PARAMETERS, VERSION, egui::MetadataOptions,
+    Metadata,
+    r#const::{AUTHORS, DATE, DESCRIPTION, NAME, PARAMETERS, PREFIX, VERSION},
+    egui::MetadataOptions,
 };
+use const_format::formatcp;
 use egui::{Grid, Label, Response, Ui, Widget};
+use egui_l10n::ContextExt;
 
 /// Readable metadata widget
 pub(super) struct Readable<'a> {
@@ -20,46 +24,46 @@ impl Readable<'_> {
         Grid::new(ui.next_auto_id())
             .show(ui, |ui| {
                 if self.options.name {
-                    ui.label("Name");
-                    if let Some(name) = self.metadata.get(NAME) {
-                        ui.label(name);
+                    if let Some(value) = self.metadata.get(NAME) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{NAME}")));
+                        ui.label(value);
+                        ui.end_row();
                     }
-                    ui.end_row();
                 }
                 if self.options.description {
-                    ui.label("Description");
-                    if let Some(description) = self.metadata.get(DESCRIPTION) {
-                        Label::new(description).truncate().ui(ui);
+                    if let Some(value) = self.metadata.get(DESCRIPTION) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{DESCRIPTION}")));
+                        Label::new(value).truncate().ui(ui);
+                        ui.end_row();
                     }
-                    ui.end_row();
                 }
                 if self.options.authors {
-                    ui.label("Authors");
-                    if let Some(authors) = self.metadata.get(AUTHORS) {
-                        ui.label(authors);
+                    if let Some(value) = self.metadata.get(AUTHORS) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{AUTHORS}")));
+                        ui.label(value);
+                        ui.end_row();
                     }
-                    ui.end_row();
                 }
                 if self.options.parameters {
-                    ui.label("Parameters");
-                    if let Some(parameters) = self.metadata.get(PARAMETERS) {
-                        ui.label(parameters);
+                    if let Some(value) = self.metadata.get(PARAMETERS) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{PARAMETERS}")));
+                        ui.label(value);
+                        ui.end_row();
                     }
-                    ui.end_row();
                 }
                 if self.options.version {
-                    ui.label("Version");
-                    if let Some(version) = self.metadata.get(VERSION) {
-                        ui.label(version);
+                    if let Some(value) = self.metadata.get(VERSION) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{VERSION}")));
+                        ui.label(value);
+                        ui.end_row();
                     }
-                    ui.end_row();
                 }
                 if self.options.date {
-                    ui.label("Date");
-                    if let Some(date) = self.metadata.get(DATE) {
-                        ui.label(date);
+                    if let Some(value) = self.metadata.get(DATE) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{DATE}")));
+                        ui.label(value);
+                        ui.end_row();
                     }
-                    ui.end_row();
                 }
             })
             .response

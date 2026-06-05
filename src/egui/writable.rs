@@ -1,7 +1,8 @@
 // TODO: TextEdit::singleline lost_focus: https://github.com/emilk/egui/issues/2142
 
 use crate::{
-    AUTHORS, DATE, DESCRIPTION, Metadata, NAME, PARAMETERS, VERSION,
+    Metadata,
+    r#const::{AUTHORS, DATE, DESCRIPTION, NAME, PARAMETERS, PREFIX, VERSION},
     egui::{EQUAL, MetadataOptions, SEMICOLON},
 };
 use egui::{
@@ -39,27 +40,27 @@ impl Writable<'_> {
             .body(|mut body| {
                 // Name
                 if self.options.name {
-                    body.key_value(height, "Name", |ui| name(self.metadata, ui));
+                    body.key_value(height, NAME, |ui| name(self.metadata, ui));
                 }
                 // Description
                 if self.options.description {
-                    body.key_value(height, "Description", |ui| description(self.metadata, ui));
+                    body.key_value(height, DESCRIPTION, |ui| description(self.metadata, ui));
                 }
                 // Authors
                 if self.options.authors {
-                    body.key_value(height, "Authors", |ui| authors(self.metadata, ui));
+                    body.key_value(height, AUTHORS, |ui| authors(self.metadata, ui));
                 }
                 // Parameters
                 if self.options.parameters {
-                    body.key_value(height, "Parameters", |ui| parameters(self.metadata, ui));
+                    body.key_value(height, PARAMETERS, |ui| parameters(self.metadata, ui));
                 }
                 // Version
                 if self.options.version {
-                    body.key_value(height, "Version", |ui| version(self.metadata, ui));
+                    body.key_value(height, VERSION, |ui| version(self.metadata, ui));
                 }
                 // Date
                 if self.options.date {
-                    body.key_value(height, "Date", |ui| date(self.metadata, ui));
+                    body.key_value(height, DATE, |ui| date(self.metadata, ui));
                 }
             });
     }
@@ -318,7 +319,7 @@ impl<'a> TableBodyExt for TableBody<'a> {
     fn key_value(&mut self, height: f32, key: &str, value: impl FnOnce(&mut Ui)) {
         self.row(height, |mut row| {
             row.col(|ui| {
-                ui.label(key);
+                ui.label(format!("{PREFIX}_{key}"));
             });
             row.col(value);
         });
