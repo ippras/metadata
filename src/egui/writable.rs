@@ -11,10 +11,12 @@ use egui::{
     containers::menu::{MenuButton, MenuConfig},
 };
 use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
+use egui_l10n::ContextExt;
 use egui_phosphor::regular::{CARET_DOWN, CARET_UP, MINUS, PLUS, SORT_ASCENDING};
 use itertools::Itertools;
 use jiff::civil::Date;
 use semver::Version;
+use std::collections::btree_map::Entry;
 use tracing::{error, instrument};
 
 /// Writable metadata widget
@@ -153,147 +155,161 @@ fn name(metadata: &mut Metadata, ui: &mut Ui) {
 }
 
 fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
-    let entry = metadata.entry(PARAMETERS.to_owned()).or_default();
-    let mut parameters = ui.memory_mut(|memory| {
-        memory
-            .caches
-            .cache::<ParametersComputed>()
-            .get(entry)
-            .clone()
-    });
-    let mut changed = false;
-    parameters.retain_mut(|(name, value)| {
-        let mut keep = true;
-        let desired_width = ui.spacing().text_edit_width / 2.0;
-        ui.horizontal(|ui| {
-            keep = !ui.button(MINUS).clicked();
-            changed |= !keep;
-            let response = TextEdit::singleline(name)
-                .desired_width(desired_width)
-                .ui(ui);
-            changed |= response.changed();
-            if response.lost_focus() || response.clicked_elsewhere() {
-                *name = name.trim().to_owned();
-                changed = true;
-            }
-            let checked = value.is_some();
-            let response = ui.selectable_label(checked, EQUAL);
-            if response.clicked() {
-                *value = if checked { None } else { Some(String::new()) };
-            }
-            if let Some(value) = value {
-                let response = TextEdit::singleline(value)
+    // let entry = metadata.entry(PARAMETERS.to_owned());
+    if let Entry::Occupied(mut occupied) = metadata.entry(PARAMETERS.to_owned()) {
+        let value = occupied.get_mut();
+        let mut parameters = ui.memory_mut(|memory| {
+            memory
+                .caches
+                .cache::<ParametersComputed>()
+                .get(value)
+                .clone()
+        });
+        let mut changed = false;
+        parameters.retain_mut(|(name, value)| {
+            let mut keep = true;
+            let desired_width = ui.spacing().text_edit_width / 2.0;
+            ui.horizontal(|ui| {
+                keep = !ui.button(MINUS).clicked();
+                changed |= !keep;
+                let response = TextEdit::singleline(name)
                     .desired_width(desired_width)
                     .ui(ui);
                 changed |= response.changed();
                 if response.lost_focus() || response.clicked_elsewhere() {
-                    *value = value.trim().to_owned();
+                    *name = name.trim().to_owned();
                     changed = true;
                 }
-            }
-        });
-        keep
-    });
-    if changed {
-        *entry = parameters
-            .into_iter()
-            .format_with(SEMICOLON, |(name, value), f| {
-                if let Some(value) = value {
-                    f(&format_args!("{name}{EQUAL}{value}"))
-                } else {
-                    f(&name)
+                let checked = value.is_some();
+                let response = ui.selectable_label(checked, EQUAL);
+                if response.clicked() {
+                    *value = if checked { None } else { Some(String::new()) };
                 }
-            })
-            .to_string();
+                if let Some(value) = value {
+                    let response = TextEdit::singleline(value)
+                        .desired_width(desired_width)
+                        .ui(ui);
+                    changed |= response.changed();
+                    if response.lost_focus() || response.clicked_elsewhere() {
+                        *value = value.trim().to_owned();
+                        changed = true;
+                    }
+                }
+            });
+            keep
+        });
+        if changed {
+            *value = parameters
+                .into_iter()
+                .format_with(SEMICOLON, |(name, value), f| {
+                    if let Some(value) = value {
+                        f(&format_args!("{name}{EQUAL}{value}"))
+                    } else {
+                        f(&name)
+                    }
+                })
+                .to_string();
+        }
     }
-    ui.horizontal(|ui| {
+    // let value = entry.or_default()
+    // let value = metadata.get_mut(PARAMETERS);
+    ui.horizontal(|ui: &mut Ui| {
         if ui.button(PLUS).clicked() {
-            entry.push_str(SEMICOLON);
+            metadata
+                .entry(PARAMETERS.to_owned())
+                .and_modify(|value| value.push_str(SEMICOLON))
+                .or_insert(SEMICOLON.to_owned());
+            // entry.or_insert(SEMICOLON.to_owned());
         }
         if ui.button(SORT_ASCENDING).clicked() {
-            *entry = entry.split(SEMICOLON).sorted().join(SEMICOLON);
+            metadata
+                .entry(PARAMETERS.to_owned())
+                .and_modify(|value| *value = value.split(SEMICOLON).sorted().join(SEMICOLON));
         }
     });
 }
 
 fn version(metadata: &mut Metadata, ui: &mut Ui) {
-    let entry = metadata.entry(VERSION.to_owned()).or_default();
-    let mut version = Version::parse(entry).unwrap_or_else(|error| {
-        error!(%error);
-        let version = Version::new(0, 0, 0);
-        *entry = version.to_string();
-        version
-    });
-    let mut changed = false;
-    MenuButton::new(version.to_string())
-        .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
-        .ui(ui, |ui| {
-            ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
-            Grid::new(ui.next_auto_id()).show(ui, |ui| {
-                let size = ui.spacing().interact_size;
-                if Button::new(CARET_UP)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.major = version.major.saturating_add(1);
-                    changed = true;
-                }
-                if Button::new(CARET_UP)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.minor = version.minor.saturating_add(1);
-                    changed = true;
-                }
-                if Button::new(CARET_UP)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.patch = version.patch.saturating_add(1);
-                    changed = true;
-                }
-                ui.end_row();
-                changed |= DragValue::new(&mut version.major).ui(ui).changed();
-                changed |= DragValue::new(&mut version.minor).ui(ui).changed();
-                changed |= DragValue::new(&mut version.patch).ui(ui).changed();
-                ui.end_row();
-                if Button::new(CARET_DOWN)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.major = version.major.saturating_sub(1);
-                    changed = true;
-                }
-                if Button::new(CARET_DOWN)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.minor = version.minor.saturating_sub(1);
-                    changed = true;
-                }
-                if Button::new(CARET_DOWN)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.patch = version.patch.saturating_sub(1);
-                    changed = true;
-                }
-            });
+    let entry = metadata.entry(VERSION.to_owned());
+    if let Entry::Occupied(mut occupied) = entry {
+        let value = occupied.get_mut();
+        let mut version = Version::parse(value).unwrap_or_else(|error| {
+            error!(%error);
+            let version = Version::new(0, 0, 0);
+            *value = version.to_string();
+            version
         });
-    if changed {
-        *entry = version.to_string();
+        let mut changed = false;
+        MenuButton::new(version.to_string())
+            .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
+            .ui(ui, |ui| {
+                ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
+                Grid::new(ui.next_auto_id()).show(ui, |ui| {
+                    let size = ui.spacing().interact_size;
+                    if Button::new(CARET_UP)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.major = version.major.saturating_add(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_UP)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.minor = version.minor.saturating_add(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_UP)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.patch = version.patch.saturating_add(1);
+                        changed = true;
+                    }
+                    ui.end_row();
+                    changed |= DragValue::new(&mut version.major).ui(ui).changed();
+                    changed |= DragValue::new(&mut version.minor).ui(ui).changed();
+                    changed |= DragValue::new(&mut version.patch).ui(ui).changed();
+                    ui.end_row();
+                    if Button::new(CARET_DOWN)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.major = version.major.saturating_sub(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_DOWN)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.minor = version.minor.saturating_sub(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_DOWN)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.patch = version.patch.saturating_sub(1);
+                        changed = true;
+                    }
+                });
+            });
+        if changed {
+            *value = version.to_string();
+        }
     }
 }
 
@@ -319,7 +335,7 @@ impl<'a> TableBodyExt for TableBody<'a> {
     fn key_value(&mut self, height: f32, key: &str, value: impl FnOnce(&mut Ui)) {
         self.row(height, |mut row| {
             row.col(|ui| {
-                ui.label(format!("{PREFIX}_{key}"));
+                ui.label(ui.localize(&format!("{PREFIX}_{key}")));
             });
             row.col(value);
         });

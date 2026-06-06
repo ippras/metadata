@@ -636,6 +636,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui-probe"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4cc89e4fd990df3e50ff7a1eb3872593cbc35e8228c840ededd478b2b299853"
+dependencies = [
+ "egui",
+]
+
+[[package]]
 name = "egui-winit"
 version = "0.34.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1557,6 +1566,7 @@ dependencies = [
  "const_format",
  "egui",
  "egui-phosphor",
+ "egui-probe",
  "egui_extras",
  "egui_l10n",
  "itertools",
