@@ -1,6 +1,6 @@
 use crate::{
     Metadata,
-    r#const::{DATE, NAME, PARAMETERS, VERSION},
+    r#const::{DATE, DEFAULT_VERSION, NAME, PARAMETERS, VERSION},
 };
 use std::fmt::{Debug, Display, Formatter, Result};
 use typed_builder::TypedBuilder;
@@ -37,6 +37,7 @@ impl Display for Format<'_> {
         }
         if self.version
             && let Some(value) = self.metadata.get(VERSION)
+            && value != DEFAULT_VERSION
         {
             write!(f, "[{}]", value.trim_start_matches(['0', '.']))?;
         }
