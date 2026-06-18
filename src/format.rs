@@ -37,9 +37,8 @@ impl Display for Format<'_> {
         }
         if self.version
             && let Some(value) = self.metadata.get(VERSION)
-            && value != DEFAULT_VERSION
         {
-            write!(f, "[{}]", value.trim_start_matches(['0', '.']))?;
+            write!(f, "[{}]", value.trim_start_matches("0."))?;
         }
         if let Some(date) = self.date
             && let Some(value) = self.metadata.get(DATE)
