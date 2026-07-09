@@ -6,7 +6,7 @@ use crate::{
     egui::{EQUAL, MetadataOptions, SEMICOLON},
 };
 use egui::{
-    Button, DragValue, Event, Grid, PopupCloseBehavior, TextEdit, Ui, Widget,
+    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, Ui, Widget,
     cache::{ComputerMut, FrameCache},
     containers::menu::{MenuButton, MenuConfig},
 };
@@ -184,10 +184,7 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
         }
     } else {
         let mut text = String::new();
-        let rect = ui
-            .add_enabled_ui(false, |ui| TextEdit::multiline(&mut text).ui(ui))
-            .response
-            .rect;
+        let rect = ui.add_enabled(false, TextEdit::multiline(&mut text)).rect;
         let response = ui.interact(
             rect,
             ui.auto_id_with("DescriptionDisableInteract"),
@@ -306,8 +303,8 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
 }
 
 fn version(metadata: &mut Metadata, ui: &mut Ui) {
-    let entry = metadata.entry(VERSION.to_owned());
-    if let Entry::Occupied(mut occupied) = entry {
+    let mut remove = None;
+    if let Entry::Occupied(mut occupied) = metadata.entry(VERSION.to_owned()) {
         let value = occupied.get_mut();
         let mut version = Version::parse(value).unwrap_or_else(|error| {
             error!(%error);
@@ -316,75 +313,167 @@ fn version(metadata: &mut Metadata, ui: &mut Ui) {
             version
         });
         let mut changed = false;
-        MenuButton::new(version.to_string())
-            .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
-            .ui(ui, |ui| {
-                ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
-                Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
-                    let size = ui.spacing().interact_size;
-                    if Button::new(CARET_UP)
-                        .frame(false)
-                        .min_size(size)
-                        .ui(ui)
-                        .clicked()
-                    {
-                        version.major = version.major.saturating_add(1);
-                        changed = true;
-                    }
-                    if Button::new(CARET_UP)
-                        .frame(false)
-                        .min_size(size)
-                        .ui(ui)
-                        .clicked()
-                    {
-                        version.minor = version.minor.saturating_add(1);
-                        changed = true;
-                    }
-                    if Button::new(CARET_UP)
-                        .frame(false)
-                        .min_size(size)
-                        .ui(ui)
-                        .clicked()
-                    {
-                        version.patch = version.patch.saturating_add(1);
-                        changed = true;
-                    }
-                    ui.end_row();
-                    changed |= DragValue::new(&mut version.major).ui(ui).changed();
-                    changed |= DragValue::new(&mut version.minor).ui(ui).changed();
-                    changed |= DragValue::new(&mut version.patch).ui(ui).changed();
-                    ui.end_row();
-                    if Button::new(CARET_DOWN)
-                        .frame(false)
-                        .min_size(size)
-                        .ui(ui)
-                        .clicked()
-                    {
-                        version.major = version.major.saturating_sub(1);
-                        changed = true;
-                    }
-                    if Button::new(CARET_DOWN)
-                        .frame(false)
-                        .min_size(size)
-                        .ui(ui)
-                        .clicked()
-                    {
-                        version.minor = version.minor.saturating_sub(1);
-                        changed = true;
-                    }
-                    if Button::new(CARET_DOWN)
-                        .frame(false)
-                        .min_size(size)
-                        .ui(ui)
-                        .clicked()
-                    {
-                        version.patch = version.patch.saturating_sub(1);
-                        changed = true;
-                    }
-                });
+        let response = ui.button(version.to_string());
+        Popup::from_toggle_button_response(&response).show(|ui| {
+            ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
+            Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
+                let size = ui.spacing().interact_size;
+                if Button::new(CARET_UP)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.major = version.major.saturating_add(1);
+                    changed = true;
+                }
+                if Button::new(CARET_UP)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.minor = version.minor.saturating_add(1);
+                    changed = true;
+                }
+                if Button::new(CARET_UP)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.patch = version.patch.saturating_add(1);
+                    changed = true;
+                }
+                ui.end_row();
+                changed |= DragValue::new(&mut version.major).ui(ui).changed();
+                changed |= DragValue::new(&mut version.minor).ui(ui).changed();
+                changed |= DragValue::new(&mut version.patch).ui(ui).changed();
+                ui.end_row();
+                if Button::new(CARET_DOWN)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.major = version.major.saturating_sub(1);
+                    changed = true;
+                }
+                if Button::new(CARET_DOWN)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.minor = version.minor.saturating_sub(1);
+                    changed = true;
+                }
+                if Button::new(CARET_DOWN)
+                    .frame(false)
+                    .min_size(size)
+                    .ui(ui)
+                    .clicked()
+                {
+                    version.patch = version.patch.saturating_sub(1);
+                    changed = true;
+                }
             });
+        });
+        // let response = MenuButton::new(version.to_string())
+        //     .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
+        //     .ui(ui, |ui| {
+        //         ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
+        //         Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
+        //             let size = ui.spacing().interact_size;
+        //             if Button::new(CARET_UP)
+        //                 .frame(false)
+        //                 .min_size(size)
+        //                 .ui(ui)
+        //                 .clicked()
+        //             {
+        //                 version.major = version.major.saturating_add(1);
+        //                 changed = true;
+        //             }
+        //             if Button::new(CARET_UP)
+        //                 .frame(false)
+        //                 .min_size(size)
+        //                 .ui(ui)
+        //                 .clicked()
+        //             {
+        //                 version.minor = version.minor.saturating_add(1);
+        //                 changed = true;
+        //             }
+        //             if Button::new(CARET_UP)
+        //                 .frame(false)
+        //                 .min_size(size)
+        //                 .ui(ui)
+        //                 .clicked()
+        //             {
+        //                 version.patch = version.patch.saturating_add(1);
+        //                 changed = true;
+        //             }
+        //             ui.end_row();
+        //             changed |= DragValue::new(&mut version.major).ui(ui).changed();
+        //             changed |= DragValue::new(&mut version.minor).ui(ui).changed();
+        //             changed |= DragValue::new(&mut version.patch).ui(ui).changed();
+        //             ui.end_row();
+        //             if Button::new(CARET_DOWN)
+        //                 .frame(false)
+        //                 .min_size(size)
+        //                 .ui(ui)
+        //                 .clicked()
+        //             {
+        //                 version.major = version.major.saturating_sub(1);
+        //                 changed = true;
+        //             }
+        //             if Button::new(CARET_DOWN)
+        //                 .frame(false)
+        //                 .min_size(size)
+        //                 .ui(ui)
+        //                 .clicked()
+        //             {
+        //                 version.minor = version.minor.saturating_sub(1);
+        //                 changed = true;
+        //             }
+        //             if Button::new(CARET_DOWN)
+        //                 .frame(false)
+        //                 .min_size(size)
+        //                 .ui(ui)
+        //                 .clicked()
+        //             {
+        //                 version.patch = version.patch.saturating_sub(1);
+        //                 changed = true;
+        //             }
+        //         });
+        //     })
+        //     .0;
+        response.context_menu(|ui| {
+            if ui.button("Disable").clicked() {
+                remove = Some(true);
+            }
+        });
         if changed {
             *value = version.to_string();
+        }
+    } else {
+        let version = Version::new(0, 0, 0);
+        let rect = ui.add_enabled(false, Button::new(version.to_string())).rect;
+        let response = ui.interact(
+            rect,
+            ui.auto_id_with("VersionDisableInteract"),
+            egui::Sense::click(),
+        );
+        response.context_menu(|ui| {
+            if ui.button("Enable").clicked() {
+                remove = Some(false);
+            }
+        });
+    }
+    if let Some(remove) = remove {
+        if remove {
+            metadata.remove(VERSION);
+        } else {
+            metadata.insert(VERSION.to_owned(), String::new());
         }
     }
 }
