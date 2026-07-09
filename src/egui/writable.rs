@@ -188,7 +188,11 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
             .add_enabled_ui(false, |ui| TextEdit::multiline(&mut text).ui(ui))
             .response
             .rect;
-        let response = ui.interact(rect, ui.id().with("DisableInteract"), egui::Sense::click());
+        let response = ui.interact(
+            rect,
+            ui.id().with("DescriptionDisableInteract"),
+            egui::Sense::click(),
+        );
         response.context_menu(|ui| {
             if ui.button("Enable").clicked() {
                 remove = Some(false);
