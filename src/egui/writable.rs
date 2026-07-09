@@ -183,7 +183,6 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
             *value = value.trim().to_owned();
         }
     } else {
-        ui.disable();
         let response = TextEdit::multiline(&mut "").ui(ui);
         response.context_menu(|ui| {
             if ui.button("Enable").clicked() {
