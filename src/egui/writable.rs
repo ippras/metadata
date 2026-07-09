@@ -155,8 +155,7 @@ fn name(metadata: &mut Metadata, ui: &mut Ui) {
 }
 
 fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
-    // let entry = metadata.entry(PARAMETERS.to_owned());
-    let mut is_enabled = metadata.contains_key(PARAMETERS);
+    let is_enabled = metadata.contains_key(PARAMETERS);
     if let Entry::Occupied(mut occupied) = metadata.entry(PARAMETERS.to_owned()) {
         let value = occupied.get_mut();
         let mut parameters = ui.memory_mut(|memory| {
@@ -212,15 +211,21 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
                 .to_string();
         }
     }
-    // let value = entry.or_default()
-    // let value = metadata.get_mut(PARAMETERS);
     ui.horizontal(|ui: &mut Ui| {
         if ui.button(PLUS).clicked() {
-            metadata
-                .entry(PARAMETERS.to_owned())
-                .and_modify(|value| value.push_str(SEMICOLON))
-                .or_insert(SEMICOLON.to_owned());
-            // entry.or_insert(SEMICOLON.to_owned());
+            if !is_enabled {
+                // Если параметров вообще нет, создаем ключ и добавляем первый параметр
+                metadata.insert(PARAMETERS.to_owned(), String::new());
+            } else {
+                // Если параметры уже есть, просто добавляем еще один
+                metadata
+                    .entry(PARAMETERS.to_owned())
+                    .and_modify(|value| value.push_str(SEMICOLON))
+                    .or_insert(SEMICOLON.to_owned());
+            }
+        }
+        if !is_enabled {
+            ui.disable();
         }
         if ui.button(SORT_ASCENDING).clicked() {
             metadata
