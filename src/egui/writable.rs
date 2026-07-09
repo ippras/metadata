@@ -183,14 +183,22 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
             *value = value.trim().to_owned();
         }
     } else {
-        ui.disable();
         let mut text = String::new();
-        let response = TextEdit::multiline(&mut text).ui(ui);
+        let response = ui
+            .add_enabled_ui(false, |ui| TextEdit::multiline(&mut text).ui(ui))
+            .response;
+        let response = ui.interact(
+            response.rect,
+            ui.id().with(ui.next_auto_id()),
+            egui::Sense::click(),
+        );
         response.context_menu(|ui| {
             if ui.button("Enable").clicked() {
                 remove = Some(false);
             }
         });
+        // ui.disable();
+        // let response = TextEdit::multiline(&mut text).ui(ui);
     }
     if let Some(remove) = remove {
         if remove {
@@ -199,7 +207,6 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
             metadata.insert(DESCRIPTION.to_owned(), String::new());
         }
     }
-    // let entry = metadata.entry(DESCRIPTION.to_owned());
 }
 
 fn name(metadata: &mut Metadata, ui: &mut Ui) {
