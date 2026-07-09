@@ -31,7 +31,6 @@ impl Display for Format<'_> {
         }
         if self.parameters
             && let Some(value) = self.metadata.get(PARAMETERS)
-            && !value.is_empty()
         {
             write!(f, "{{{value}}}")?;
         }
