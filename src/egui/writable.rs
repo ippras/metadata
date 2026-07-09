@@ -37,7 +37,7 @@ impl Writable<'_> {
         let height = ui.spacing().interact_size.y;
         TableBuilder::new(ui)
             .resizable(false)
-            .column(Column::auto())
+            .column(Column::auto().clip(false))
             .column(Column::remainder())
             .body(|mut body| {
                 // Name
@@ -156,6 +156,7 @@ fn name(metadata: &mut Metadata, ui: &mut Ui) {
 
 fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
     // let entry = metadata.entry(PARAMETERS.to_owned());
+    let mut is_enabled = metadata.contains_key(PARAMETERS);
     if let Entry::Occupied(mut occupied) = metadata.entry(PARAMETERS.to_owned()) {
         let value = occupied.get_mut();
         let mut parameters = ui.memory_mut(|memory| {
