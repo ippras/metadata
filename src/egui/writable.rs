@@ -198,17 +198,22 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
             });
             keep
         });
+
         if changed {
-            *value = parameters
-                .into_iter()
-                .format_with(SEMICOLON, |(name, value), f| {
-                    if let Some(value) = value {
-                        f(&format_args!("{name}{EQUAL}{value}"))
-                    } else {
-                        f(&name)
-                    }
-                })
-                .to_string();
+            if parameters.is_empty() {
+                metadata.remove(PARAMETERS);
+            } else {
+                *value = parameters
+                    .into_iter()
+                    .format_with(SEMICOLON, |(name, value), f| {
+                        if let Some(value) = value {
+                            f(&format_args!("{name}{EQUAL}{value}"))
+                        } else {
+                            f(&name)
+                        }
+                    })
+                    .to_string();
+            }
         }
     }
     ui.horizontal(|ui: &mut Ui| {
