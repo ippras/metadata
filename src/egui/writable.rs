@@ -314,7 +314,7 @@ fn version(metadata: &mut Metadata, ui: &mut Ui) {
         });
         let mut changed = false;
         let response = ui.button(version.to_string());
-        Popup::from_toggle_button_response(&response).show(|ui| {
+        Popup::from_response(&response).show(|ui| {
             ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
             Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
                 let size = ui.spacing().interact_size;
