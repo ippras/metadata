@@ -190,7 +190,7 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
             .rect;
         let response = ui.interact(
             rect,
-            ui.id().with("DescriptionDisableInteract"),
+            ui.auto_id_with("DescriptionDisableInteract"),
             egui::Sense::click(),
         );
         response.context_menu(|ui| {
@@ -320,7 +320,7 @@ fn version(metadata: &mut Metadata, ui: &mut Ui) {
             .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
             .ui(ui, |ui| {
                 ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
-                Grid::new(ui.next_auto_id()).show(ui, |ui| {
+                Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
                     let size = ui.spacing().interact_size;
                     if Button::new(CARET_UP)
                         .frame(false)
