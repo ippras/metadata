@@ -68,42 +68,6 @@ impl Writable<'_> {
     }
 }
 
-// fn authors(metadata: &mut Metadata, ui: &mut Ui) {
-//     let contains = metadata.contains_key(PARAMETERS);
-//     let entry = metadata.entry(AUTHORS.to_owned()).or_default();
-//     let mut authors =
-//         ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(entry).clone());
-//     let mut changed = false;
-//     authors.retain_mut(|author| {
-//         let mut keep = true;
-//         ui.horizontal(|ui| {
-//             keep = !ui.button(MINUS).clicked();
-//             changed |= !keep;
-//             let response = TextEdit::singleline(author).ui(ui);
-//             changed |= response.changed();
-//             if response.lost_focus() || response.clicked_elsewhere() {
-//                 *author = author.trim().to_owned();
-//                 changed = true;
-//             }
-//         });
-//         keep
-//     });
-//     if changed {
-//         *entry = authors.join(SEMICOLON);
-//     }
-//     ui.horizontal(|ui| {
-//         if ui.button(PLUS).clicked() {
-//             if !contains {
-//                 metadata.insert(PARAMETERS.to_owned(), String::new());
-//             } else {
-//                 entry.push_str(SEMICOLON);
-//             }
-//         }
-//         if ui.button(SORT_ASCENDING).clicked() {
-//             *entry = entry.split(SEMICOLON).sorted().join(SEMICOLON);
-//         }
-//     });
-// }
 fn authors(metadata: &mut Metadata, ui: &mut Ui) {
     let mut contains = false;
     if let Entry::Occupied(mut occupied) = metadata.entry(AUTHORS.to_owned()) {
@@ -194,12 +158,47 @@ fn date(metadata: &mut Metadata, ui: &mut Ui) {
     });
 }
 
+// fn description(metadata: &mut Metadata, ui: &mut Ui) {
+//     let entry = metadata.entry(DESCRIPTION.to_owned()).or_default();
+//     let response = TextEdit::multiline(entry).ui(ui);
+//     response.context_menu(|ui| {
+//         if ui.button("Disable").clicked() {
+//         }
+//     });
+//     if response.lost_focus() || response.clicked_elsewhere() {
+//         *entry = entry.trim().to_owned();
+//     }
+// }
 fn description(metadata: &mut Metadata, ui: &mut Ui) {
-    let entry = metadata.entry(DESCRIPTION.to_owned()).or_default();
-    let response = TextEdit::multiline(entry).ui(ui);
-    if response.lost_focus() || response.clicked_elsewhere() {
-        *entry = entry.trim().to_owned();
+    let mut remove = None;
+    if let Entry::Occupied(mut occupied) = metadata.entry(DESCRIPTION.to_owned()) {
+        let value = occupied.get_mut();
+        let response = TextEdit::multiline(value).ui(ui);
+        response.context_menu(|ui| {
+            if ui.button("Disable").clicked() {
+                remove = Some(true);
+            }
+        });
+        if response.lost_focus() || response.clicked_elsewhere() {
+            *value = value.trim().to_owned();
+        }
+    } else {
+        ui.disable();
+        let response = TextEdit::multiline(&mut "").ui(ui);
+        response.context_menu(|ui| {
+            if ui.button("Enable").clicked() {
+                remove = Some(false);
+            }
+        });
     }
+    if let Some(remove) = remove {
+        if remove {
+            metadata.remove(DESCRIPTION);
+        } else {
+            metadata.insert(DESCRIPTION.to_owned(), String::new());
+        }
+    }
+    // let entry = metadata.entry(DESCRIPTION.to_owned());
 }
 
 fn name(metadata: &mut Metadata, ui: &mut Ui) {
@@ -211,8 +210,9 @@ fn name(metadata: &mut Metadata, ui: &mut Ui) {
 }
 
 fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
-    let contains = metadata.contains_key(PARAMETERS);
+    let mut contains = false;
     if let Entry::Occupied(mut occupied) = metadata.entry(PARAMETERS.to_owned()) {
+        contains = true;
         let value = occupied.get_mut();
         let mut parameters = ui.memory_mut(|memory| {
             memory
