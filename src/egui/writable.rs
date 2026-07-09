@@ -184,14 +184,11 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
         }
     } else {
         let mut text = String::new();
-        let response = ui
+        let rect = ui
             .add_enabled_ui(false, |ui| TextEdit::multiline(&mut text).ui(ui))
-            .response;
-        let response = ui.interact(
-            response.rect,
-            ui.id().with(ui.next_auto_id()),
-            egui::Sense::click(),
-        );
+            .response
+            .rect;
+        let response = ui.interact(rect, ui.next_auto_id(), egui::Sense::click());
         response.context_menu(|ui| {
             if ui.button("Enable").clicked() {
                 remove = Some(false);
