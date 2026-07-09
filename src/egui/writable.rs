@@ -68,34 +68,90 @@ impl Writable<'_> {
     }
 }
 
+// fn authors(metadata: &mut Metadata, ui: &mut Ui) {
+//     let contains = metadata.contains_key(PARAMETERS);
+//     let entry = metadata.entry(AUTHORS.to_owned()).or_default();
+//     let mut authors =
+//         ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(entry).clone());
+//     let mut changed = false;
+//     authors.retain_mut(|author| {
+//         let mut keep = true;
+//         ui.horizontal(|ui| {
+//             keep = !ui.button(MINUS).clicked();
+//             changed |= !keep;
+//             let response = TextEdit::singleline(author).ui(ui);
+//             changed |= response.changed();
+//             if response.lost_focus() || response.clicked_elsewhere() {
+//                 *author = author.trim().to_owned();
+//                 changed = true;
+//             }
+//         });
+//         keep
+//     });
+//     if changed {
+//         *entry = authors.join(SEMICOLON);
+//     }
+//     ui.horizontal(|ui| {
+//         if ui.button(PLUS).clicked() {
+//             if !contains {
+//                 metadata.insert(PARAMETERS.to_owned(), String::new());
+//             } else {
+//                 entry.push_str(SEMICOLON);
+//             }
+//         }
+//         if ui.button(SORT_ASCENDING).clicked() {
+//             *entry = entry.split(SEMICOLON).sorted().join(SEMICOLON);
+//         }
+//     });
+// }
 fn authors(metadata: &mut Metadata, ui: &mut Ui) {
-    let entry = metadata.entry(AUTHORS.to_owned()).or_default();
-    let mut authors =
-        ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(entry).clone());
-    let mut changed = false;
-    authors.retain_mut(|author| {
-        let mut keep = true;
-        ui.horizontal(|ui| {
-            keep = !ui.button(MINUS).clicked();
-            changed |= !keep;
-            let response = TextEdit::singleline(author).ui(ui);
-            changed |= response.changed();
-            if response.lost_focus() || response.clicked_elsewhere() {
-                *author = author.trim().to_owned();
-                changed = true;
-            }
+    let mut contains = false;
+    if let Entry::Occupied(mut occupied) = metadata.entry(AUTHORS.to_owned()) {
+        contains = true;
+        let value = occupied.get_mut();
+        let mut authors =
+            ui.memory_mut(|memory| memory.caches.cache::<AuthorsComputed>().get(value).clone());
+        let mut changed = false;
+        authors.retain_mut(|author| {
+            let mut keep = true;
+            ui.horizontal(|ui| {
+                keep = !ui.button(MINUS).clicked();
+                changed |= !keep;
+                let response = TextEdit::singleline(author).ui(ui);
+                changed |= response.changed();
+                if response.lost_focus() || response.clicked_elsewhere() {
+                    *author = author.trim().to_owned();
+                    changed = true;
+                }
+            });
+            keep
         });
-        keep
-    });
-    if changed {
-        *entry = authors.join(SEMICOLON);
+        if changed {
+            if authors.is_empty() {
+                metadata.remove(AUTHORS);
+            } else {
+                *value = authors.join(SEMICOLON);
+            }
+        }
     }
     ui.horizontal(|ui| {
         if ui.button(PLUS).clicked() {
-            entry.push_str(SEMICOLON);
+            if !contains {
+                metadata.insert(AUTHORS.to_owned(), String::new());
+            } else {
+                metadata
+                    .entry(AUTHORS.to_owned())
+                    .and_modify(|value| value.push_str(SEMICOLON))
+                    .or_insert(SEMICOLON.to_owned());
+            }
+        }
+        if !contains {
+            ui.disable();
         }
         if ui.button(SORT_ASCENDING).clicked() {
-            *entry = entry.split(SEMICOLON).sorted().join(SEMICOLON);
+            metadata
+                .entry(AUTHORS.to_owned())
+                .and_modify(|value| *value = value.split(SEMICOLON).sorted().join(SEMICOLON));
         }
     });
 }
@@ -155,7 +211,7 @@ fn name(metadata: &mut Metadata, ui: &mut Ui) {
 }
 
 fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
-    let is_enabled = metadata.contains_key(PARAMETERS);
+    let contains = metadata.contains_key(PARAMETERS);
     if let Entry::Occupied(mut occupied) = metadata.entry(PARAMETERS.to_owned()) {
         let value = occupied.get_mut();
         let mut parameters = ui.memory_mut(|memory| {
@@ -218,7 +274,7 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
     }
     ui.horizontal(|ui: &mut Ui| {
         if ui.button(PLUS).clicked() {
-            if !is_enabled {
+            if !contains {
                 // Если параметров вообще нет, создаем ключ и добавляем первый параметр
                 metadata.insert(PARAMETERS.to_owned(), String::new());
             } else {
@@ -229,7 +285,7 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
                     .or_insert(SEMICOLON.to_owned());
             }
         }
-        if !is_enabled {
+        if !contains {
             ui.disable();
         }
         if ui.button(SORT_ASCENDING).clicked() {
