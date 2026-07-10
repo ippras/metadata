@@ -14,7 +14,7 @@ use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
 use egui_l10n::ContextExt;
 use egui_phosphor::regular::{CARET_DOWN, CARET_UP, MINUS, PLUS, SORT_ASCENDING};
 use itertools::Itertools;
-use jiff::civil::Date;
+use jiff::{Zoned, civil::Date};
 use semver::Version;
 use std::collections::btree_map::Entry;
 use tracing::{error, instrument};
@@ -62,7 +62,7 @@ impl Writable<'_> {
                 }
                 // Date
                 if self.options.date {
-                    body.key_value(height, DATE, |ui| date(self.metadata, ui));
+                    body.key_value(height, DATE, |ui| dates(self.metadata, ui));
                 }
             });
     }
@@ -120,43 +120,151 @@ fn authors(metadata: &mut Metadata, ui: &mut Ui) {
     });
 }
 
-fn date(metadata: &mut Metadata, ui: &mut Ui) {
-    ui.horizontal(|ui| {
-        let entry = metadata.entry(DATE.to_owned()).or_default();
-        let mut date = parse_date(entry).unwrap_or_else(|_| {
-            let date = Date::default();
-            *entry = date.to_string();
-            date
-        });
-        let response = DatePickerButton::new(&mut date).show_icon(false).ui(ui);
-        if response.changed() {
-            *entry = date.to_string();
-        }
-        // Focus
-        if response.hovered() && ui.input(|input| input.modifiers.ctrl && input.modifiers.shift) {
-            response.request_focus();
-        }
-        // Paste
-        if response.has_focus() {
-            ui.input(|input| {
-                for event in &input.raw.events {
-                    if let Event::Paste(text) = event {
-                        if let Ok(date) = parse_date(text) {
-                            *entry = date.to_string();
+// fn date(metadata: &mut Metadata, ui: &mut Ui) {
+//     ui.horizontal(|ui| {
+//         let entry = metadata.entry(DATE.to_owned()).or_default();
+//         let mut date = parse_date(entry).unwrap_or_else(|_| {
+//             let date = Date::default();
+//             *entry = date.to_string();
+//             date
+//         });
+//         let response = DatePickerButton::new(&mut date)
+//             .id_salt("DatePickerButton?")
+//             .show_icon(false)
+//             .ui(ui);
+//         if response.changed() {
+//             *entry = date.to_string();
+//         }
+//         // response.context_menu(|ui| {
+//         //     if ui.button((CLIPBOARD_TEXT, "Paste")).clicked() {
+//         //         // ui.input(|input| {
+//         //         //     // TODO
+//         //         // });
+//         //     }
+//         // });
+//         // Focus
+//         if response.hovered() && ui.input(|input| input.modifiers.ctrl && input.modifiers.shift) {
+//             response.request_focus();
+//         }
+//         // Paste
+//         if response.has_focus() {
+//             ui.input(|input| {
+//                 for event in &input.raw.events {
+//                     if let Event::Paste(text) = event {
+//                         if let Ok(date) = parse_date(text) {
+//                             *entry = date.to_string();
+//                         }
+//                     }
+//                 }
+//             });
+//         }
+//     });
+// }
+fn dates(metadata: &mut Metadata, ui: &mut Ui) {
+    let mut contains = false;
+    if let Entry::Occupied(mut occupied) = metadata.entry(DATE.to_owned()) {
+        contains = true;
+        let value = occupied.get_mut();
+        let mut dates =
+            ui.memory_mut(|memory| memory.caches.cache::<DatesComputed>().get(value).clone());
+        let mut changed = false;
+        let mut index = 0;
+        dates.retain_mut(|date| {
+            index += 1;
+            let mut keep = true;
+            ui.horizontal(|ui| {
+                keep = !ui.button(MINUS).clicked();
+                changed |= !keep;
+                match parse_date(date) {
+                    Ok(mut parsed) => {
+                        let response = DatePickerButton::new(&mut parsed)
+                            .id_salt(&index.to_string())
+                            .show_icon(false)
+                            .ui(ui);
+                        if response.changed() {
+                            *date = parsed.to_string();
+                            changed = true;
+                        }
+                    }
+                    Err(error) => {
+                        error!(?error);
+                        let response = TextEdit::singleline(date).ui(ui);
+                        if response.changed() {
+                            changed = true;
                         }
                     }
                 }
             });
+            keep
+        });
+        if changed {
+            if dates.is_empty() {
+                metadata.remove(DATE);
+            } else {
+                *value = dates.join(SEMICOLON);
+            }
         }
-        // response.context_menu(|ui| {
-        //     if ui.button((CLIPBOARD_TEXT, "Paste")).clicked() {
-        //         ui.input(|input| {
-        //             // TODO
-        //         });
-        //     }
-        // });
+    }
+    ui.horizontal(|ui| {
+        if ui.button(PLUS).clicked() {
+            let today = Zoned::now().date();
+            if !contains {
+                metadata.insert(DATE.to_owned(), today.to_string());
+            } else {
+                metadata
+                    .entry(DATE.to_owned())
+                    .or_default()
+                    .push_str(&format!("{SEMICOLON}{today}"));
+            }
+        }
+        if !contains {
+            ui.disable();
+        }
+        if ui.button(SORT_ASCENDING).clicked() {
+            metadata
+                .entry(DATE.to_owned())
+                .and_modify(|value| *value = value.split(SEMICOLON).sorted().join(SEMICOLON));
+        }
     });
 }
+// ui.horizontal(|ui| {
+//     let entry = metadata.entry(DATE.to_owned()).or_default();
+//     let mut date = parse_date(entry).unwrap_or_else(|_| {
+//         let date = Date::default();
+//         *entry = date.to_string();
+//         date
+//     });
+//     let response = DatePickerButton::new(&mut date)
+//         .id_salt("DatePickerButton?")
+//         .show_icon(false)
+//         .ui(ui);
+//     if response.changed() {
+//         *entry = date.to_string();
+//     }
+//     // Focus
+//     if response.hovered() && ui.input(|input| input.modifiers.ctrl && input.modifiers.shift) {
+//         response.request_focus();
+//     }
+//     // Paste
+//     if response.has_focus() {
+//         ui.input(|input| {
+//             for event in &input.raw.events {
+//                 if let Event::Paste(text) = event {
+//                     if let Ok(date) = parse_date(text) {
+//                         *entry = date.to_string();
+//                     }
+//                 }
+//             }
+//         });
+//     }
+//     // response.context_menu(|ui| {
+//     //     if ui.button((CLIPBOARD_TEXT, "Paste")).clicked() {
+//     //         ui.input(|input| {
+//     //             // TODO
+//     //         });
+//     //     }
+//     // });
+// });
 
 // fn description(metadata: &mut Metadata, ui: &mut Ui) {
 //     let entry = metadata.entry(DESCRIPTION.to_owned()).or_default();
@@ -314,71 +422,74 @@ fn version(metadata: &mut Metadata, ui: &mut Ui) {
         });
         let mut changed = false;
         let response = ui.button(version.to_string());
-        Popup::from_response(&response).show(|ui| {
-            ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
-            Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
-                let size = ui.spacing().interact_size;
-                if Button::new(CARET_UP)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.major = version.major.saturating_add(1);
-                    changed = true;
-                }
-                if Button::new(CARET_UP)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.minor = version.minor.saturating_add(1);
-                    changed = true;
-                }
-                if Button::new(CARET_UP)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.patch = version.patch.saturating_add(1);
-                    changed = true;
-                }
-                ui.end_row();
-                changed |= DragValue::new(&mut version.major).ui(ui).changed();
-                changed |= DragValue::new(&mut version.minor).ui(ui).changed();
-                changed |= DragValue::new(&mut version.patch).ui(ui).changed();
-                ui.end_row();
-                if Button::new(CARET_DOWN)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.major = version.major.saturating_sub(1);
-                    changed = true;
-                }
-                if Button::new(CARET_DOWN)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.minor = version.minor.saturating_sub(1);
-                    changed = true;
-                }
-                if Button::new(CARET_DOWN)
-                    .frame(false)
-                    .min_size(size)
-                    .ui(ui)
-                    .clicked()
-                {
-                    version.patch = version.patch.saturating_sub(1);
-                    changed = true;
-                }
+        Popup::menu(&response)
+            .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
+            .id(ui.id().with("VersionPopup"))
+            .show(|ui| {
+                ui.visuals_mut().widgets.inactive = ui.visuals().widgets.active;
+                Grid::new(ui.auto_id_with("VersionGrid")).show(ui, |ui| {
+                    let size = ui.spacing().interact_size;
+                    if Button::new(CARET_UP)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.major = version.major.saturating_add(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_UP)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.minor = version.minor.saturating_add(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_UP)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.patch = version.patch.saturating_add(1);
+                        changed = true;
+                    }
+                    ui.end_row();
+                    changed |= DragValue::new(&mut version.major).ui(ui).changed();
+                    changed |= DragValue::new(&mut version.minor).ui(ui).changed();
+                    changed |= DragValue::new(&mut version.patch).ui(ui).changed();
+                    ui.end_row();
+                    if Button::new(CARET_DOWN)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.major = version.major.saturating_sub(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_DOWN)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.minor = version.minor.saturating_sub(1);
+                        changed = true;
+                    }
+                    if Button::new(CARET_DOWN)
+                        .frame(false)
+                        .min_size(size)
+                        .ui(ui)
+                        .clicked()
+                    {
+                        version.patch = version.patch.saturating_sub(1);
+                        changed = true;
+                    }
+                });
             });
-        });
         // let response = MenuButton::new(version.to_string())
         //     .config(MenuConfig::new().close_behavior(PopupCloseBehavior::CloseOnClickOutside))
         //     .ui(ui, |ui| {
@@ -515,6 +626,19 @@ type AuthorsComputed = FrameCache<Vec<String>, AuthorsComputer>;
 struct AuthorsComputer;
 
 impl ComputerMut<&str, Vec<String>> for AuthorsComputer {
+    fn compute(&mut self, key: &str) -> Vec<String> {
+        key.split(SEMICOLON).map(ToOwned::to_owned).collect()
+    }
+}
+
+/// Dates computed
+type DatesComputed = FrameCache<Vec<String>, DatesComputer>;
+
+/// Dates computer
+#[derive(Default)]
+struct DatesComputer;
+
+impl ComputerMut<&str, Vec<String>> for DatesComputer {
     fn compute(&mut self, key: &str) -> Vec<String> {
         key.split(SEMICOLON).map(ToOwned::to_owned).collect()
     }
