@@ -34,43 +34,43 @@ impl<'a> Writable<'a> {
 impl Writable<'_> {
     pub(super) fn show(&mut self, ui: &mut Ui) {
         ui.style_mut().visuals.collapsing_header_frame = true;
-        let height = ui.spacing().interact_size.y;
+        // let height = ui.spacing().interact_size.y;
         Grid::new("WritableGrid").num_columns(2).show(ui, |ui| {
             // Name
             if self.options.name {
-                key_value(ui, height, NAME, |ui| name(self.metadata, ui));
+                key_value(ui, NAME, |ui| name(self.metadata, ui));
             }
             // Description
             if self.options.description {
-                key_value(ui, height, DESCRIPTION, |ui| description(self.metadata, ui));
+                key_value(ui, DESCRIPTION, |ui| description(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
             ui.end_row();
             // Authors
             if self.options.authors {
-                key_value(ui, height, AUTHORS, |ui| authors(self.metadata, ui));
+                key_value(ui, AUTHORS, |ui| authors(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
             ui.end_row();
             // Parameters
             if self.options.parameters {
-                key_value(ui, height, PARAMETERS, |ui| parameters(self.metadata, ui));
+                key_value(ui, PARAMETERS, |ui| parameters(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
             ui.end_row();
             // Version
             if self.options.version {
-                key_value(ui, height, VERSION, |ui| version(self.metadata, ui));
+                key_value(ui, VERSION, |ui| version(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
             ui.end_row();
             // Date
             if self.options.date {
-                key_value(ui, height, DATE, |ui| dates(self.metadata, ui));
+                key_value(ui, DATE, |ui| dates(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
@@ -110,7 +110,7 @@ impl Writable<'_> {
     }
 }
 
-fn key_value(ui: &mut Ui, height: f32, key: &str, value: impl FnOnce(&mut Ui)) {
+fn key_value(ui: &mut Ui, key: &str, value: impl FnOnce(&mut Ui)) {
     ui.vertical(|ui| {
         // ui.add_space(4.0);
         ui.style_mut().wrap_mode = Some(TextWrapMode::Extend);
@@ -260,7 +260,9 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
     let mut remove = None;
     if let Entry::Occupied(mut occupied) = metadata.entry(DESCRIPTION.to_owned()) {
         let value = occupied.get_mut();
-        let response = TextEdit::multiline(value).ui(ui);
+        let response = TextEdit::multiline(value)
+            .desired_width(f32::INFINITY)
+            .ui(ui);
         response.context_menu(|ui| {
             if ui.button("Disable").clicked() {
                 remove = Some(true);
@@ -351,6 +353,12 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
                         *value = value.trim().to_owned();
                         changed = true;
                     }
+                } else {
+                    ui.disable();
+                    let mut text = String::new();
+                    TextEdit::singleline(&mut text)
+                        .desired_width(desired_width)
+                        .ui(ui);
                 }
             });
             keep
