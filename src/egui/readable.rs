@@ -1,6 +1,6 @@
 use crate::{
     Metadata,
-    r#const::{AUTHORS, DATE, DESCRIPTION, NAME, PARAMETERS, PREFIX, VERSION},
+    r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, PREFIX, VERSIONS},
     egui::MetadataOptions,
 };
 use const_format::formatcp;
@@ -52,15 +52,15 @@ impl Readable<'_> {
                     }
                 }
                 if self.options.version {
-                    if let Some(value) = self.metadata.get(VERSION) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{VERSION}")));
+                    if let Some(value) = self.metadata.get(VERSIONS) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{VERSIONS}")));
                         ui.label(value);
                         ui.end_row();
                     }
                 }
                 if self.options.date {
-                    if let Some(value) = self.metadata.get(DATE) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{DATE}")));
+                    if let Some(value) = self.metadata.get(DATES) {
+                        ui.label(ui.localize(formatcp!("{PREFIX}_{DATES}")));
                         ui.label(value);
                         ui.end_row();
                     }

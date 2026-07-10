@@ -2,7 +2,7 @@
 
 use crate::{
     Metadata,
-    r#const::{AUTHORS, DATE, DESCRIPTION, NAME, PARAMETERS, PREFIX, VERSION},
+    r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, PREFIX, VERSIONS},
     egui::{EQUAL, MetadataOptions, SEMICOLON},
 };
 use egui::{
@@ -16,7 +16,7 @@ use egui_phosphor::regular::{CARET_DOWN, CARET_UP, MINUS, PLUS, SORT_ASCENDING};
 use itertools::Itertools;
 use jiff::{Zoned, civil::Date};
 use semver::Version;
-use std::collections::btree_map::Entry;
+use std::{cmp::min, collections::btree_map::Entry};
 use tracing::{error, instrument};
 
 /// Writable metadata widget
@@ -63,14 +63,14 @@ impl Writable<'_> {
             ui.end_row();
             // Version
             if self.options.version {
-                key_value(ui, VERSION, |ui| version(self.metadata, ui));
+                key_value(ui, VERSIONS, |ui| versions(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
             ui.end_row();
             // Date
             if self.options.date {
-                key_value(ui, DATE, |ui| dates(self.metadata, ui));
+                key_value(ui, DATES, |ui| dates(self.metadata, ui));
             }
             ui.separator();
             ui.separator();
@@ -117,7 +117,7 @@ fn key_value(ui: &mut Ui, key: &str, value: impl FnOnce(&mut Ui)) {
         ui.label(ui.localize(&format!("{PREFIX}_{key}")));
     });
     ui.vertical(|ui| {
-        ui.set_min_width(ui.available_width());
+        // ui.set_min_width(ui.available_width() / 2.0);
         value(ui);
     });
     ui.end_row();
@@ -179,7 +179,7 @@ fn authors(metadata: &mut Metadata, ui: &mut Ui) {
 
 fn dates(metadata: &mut Metadata, ui: &mut Ui) {
     let mut contains = false;
-    if let Entry::Occupied(mut occupied) = metadata.entry(DATE.to_owned()) {
+    if let Entry::Occupied(mut occupied) = metadata.entry(DATES.to_owned()) {
         contains = true;
         let value = occupied.get_mut();
         let mut dates =
@@ -216,7 +216,7 @@ fn dates(metadata: &mut Metadata, ui: &mut Ui) {
         });
         if changed {
             if dates.is_empty() {
-                metadata.remove(DATE);
+                metadata.remove(DATES);
             } else {
                 *value = dates.join(SEMICOLON);
             }
@@ -226,10 +226,10 @@ fn dates(metadata: &mut Metadata, ui: &mut Ui) {
         if ui.button(PLUS).clicked() {
             let today = Zoned::now().date();
             if !contains {
-                metadata.insert(DATE.to_owned(), today.to_string());
+                metadata.insert(DATES.to_owned(), today.to_string());
             } else {
                 metadata
-                    .entry(DATE.to_owned())
+                    .entry(DATES.to_owned())
                     .or_default()
                     .push_str(&format!("{SEMICOLON}{today}"));
             }
@@ -239,7 +239,7 @@ fn dates(metadata: &mut Metadata, ui: &mut Ui) {
         }
         if ui.button(SORT_ASCENDING).clicked() {
             metadata
-                .entry(DATE.to_owned())
+                .entry(DATES.to_owned())
                 .and_modify(|value| *value = value.split(SEMICOLON).sorted().join(SEMICOLON));
         }
     });
@@ -327,12 +327,13 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
         parameters.retain_mut(|(name, value)| {
             let mut keep = true;
             // let desired_width = ui.spacing().text_edit_width / 2.0;
-            let desired_width = ui.available_width() / 2.0;
+            // let desired_width = ui.available_width() / 2.0;
+            let available_width = ui.available_width();
             ui.horizontal(|ui| {
                 keep = !ui.button(MINUS).clicked();
                 changed |= !keep;
                 let response = TextEdit::singleline(name)
-                    .desired_width(desired_width)
+                    .desired_width(ui.spacing().text_edit_width.min(available_width / 2.0))
                     .ui(ui);
                 changed |= response.changed();
                 if response.lost_focus() || response.clicked_elsewhere() {
@@ -346,7 +347,7 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
                 }
                 if let Some(value) = value {
                     let response = TextEdit::singleline(value)
-                        .desired_width(desired_width)
+                        .desired_width(available_width)
                         .ui(ui);
                     changed |= response.changed();
                     if response.lost_focus() || response.clicked_elsewhere() {
@@ -357,7 +358,7 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
                     ui.disable();
                     let mut text = String::new();
                     TextEdit::singleline(&mut text)
-                        .desired_width(desired_width)
+                        .desired_width(available_width)
                         .ui(ui);
                 }
             });
@@ -405,9 +406,9 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
     });
 }
 
-fn version(metadata: &mut Metadata, ui: &mut Ui) {
+fn versions(metadata: &mut Metadata, ui: &mut Ui) {
     let mut remove = None;
-    if let Entry::Occupied(mut occupied) = metadata.entry(VERSION.to_owned()) {
+    if let Entry::Occupied(mut occupied) = metadata.entry(VERSIONS.to_owned()) {
         let value = occupied.get_mut();
         let mut version = Version::parse(value).unwrap_or_else(|error| {
             error!(%error);
@@ -577,9 +578,9 @@ fn version(metadata: &mut Metadata, ui: &mut Ui) {
     }
     if let Some(remove) = remove {
         if remove {
-            metadata.remove(VERSION);
+            metadata.remove(VERSIONS);
         } else {
-            metadata.insert(VERSION.to_owned(), String::new());
+            metadata.insert(VERSIONS.to_owned(), String::new());
         }
     }
 }
