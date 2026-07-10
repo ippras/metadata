@@ -6,7 +6,7 @@ use crate::{
     egui::{EQUAL, MetadataOptions, SEMICOLON},
 };
 use egui::{
-    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, Ui, Widget,
+    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextWrapMode, Ui, Widget,
     cache::{ComputerMut, FrameCache},
     containers::menu::{MenuButton, MenuConfig},
 };
@@ -35,37 +35,92 @@ impl Writable<'_> {
     pub(super) fn show(&mut self, ui: &mut Ui) {
         ui.style_mut().visuals.collapsing_header_frame = true;
         let height = ui.spacing().interact_size.y;
-        TableBuilder::new(ui)
-            .resizable(false)
-            .column(Column::auto().clip(false))
-            .column(Column::remainder())
-            .body(|mut body| {
-                // Name
-                if self.options.name {
-                    body.key_value(height, NAME, |ui| name(self.metadata, ui));
-                }
-                // Description
-                if self.options.description {
-                    body.key_value(height, DESCRIPTION, |ui| description(self.metadata, ui));
-                }
-                // Authors
-                if self.options.authors {
-                    body.key_value(height, AUTHORS, |ui| authors(self.metadata, ui));
-                }
-                // Parameters
-                if self.options.parameters {
-                    body.key_value(height, PARAMETERS, |ui| parameters(self.metadata, ui));
-                }
-                // Version
-                if self.options.version {
-                    body.key_value(height, VERSION, |ui| version(self.metadata, ui));
-                }
-                // Date
-                if self.options.date {
-                    body.key_value(height, DATE, |ui| dates(self.metadata, ui));
-                }
-            });
+        Grid::new("WritableGrid").num_columns(2).show(ui, |ui| {
+            // Name
+            if self.options.name {
+                key_value(ui, height, NAME, |ui| name(self.metadata, ui));
+            }
+            // Description
+            if self.options.description {
+                key_value(ui, height, DESCRIPTION, |ui| description(self.metadata, ui));
+            }
+            ui.separator();
+            ui.separator();
+            ui.end_row();
+            // Authors
+            if self.options.authors {
+                key_value(ui, height, AUTHORS, |ui| authors(self.metadata, ui));
+            }
+            ui.separator();
+            ui.separator();
+            ui.end_row();
+            // Parameters
+            if self.options.parameters {
+                key_value(ui, height, PARAMETERS, |ui| parameters(self.metadata, ui));
+            }
+            ui.separator();
+            ui.separator();
+            ui.end_row();
+            // Version
+            if self.options.version {
+                key_value(ui, height, VERSION, |ui| version(self.metadata, ui));
+            }
+            ui.separator();
+            ui.separator();
+            ui.end_row();
+            // Date
+            if self.options.date {
+                key_value(ui, height, DATE, |ui| dates(self.metadata, ui));
+            }
+            ui.separator();
+            ui.separator();
+            ui.end_row();
+        });
+        // let height = ui.spacing().interact_size.y;
+        // TableBuilder::new(ui)
+        //     .resizable(false)
+        //     .column(Column::auto().clip(false))
+        //     .column(Column::remainder())
+        //     .body(|mut body| {
+        //         // Name
+        //         if self.options.name {
+        //             body.key_value(height, NAME, |ui| name(self.metadata, ui));
+        //         }
+        //         // Description
+        //         if self.options.description {
+        //             body.key_value(height, DESCRIPTION, |ui| description(self.metadata, ui));
+        //         }
+        //         // Authors
+        //         if self.options.authors {
+        //             body.key_value(height, AUTHORS, |ui| authors(self.metadata, ui));
+        //         }
+        //         // Parameters
+        //         if self.options.parameters {
+        //             body.key_value(height, PARAMETERS, |ui| parameters(self.metadata, ui));
+        //         }
+        //         // Version
+        //         if self.options.version {
+        //             body.key_value(height, VERSION, |ui| version(self.metadata, ui));
+        //         }
+        //         // Date
+        //         if self.options.date {
+        //             body.key_value(height, DATE, |ui| dates(self.metadata, ui));
+        //         }
+        //     });
     }
+}
+
+fn key_value(ui: &mut Ui, height: f32, key: &str, value: impl FnOnce(&mut Ui)) {
+    ui.vertical(|ui| {
+        // ui.add_space(4.0);
+        ui.style_mut().wrap_mode = Some(TextWrapMode::Extend);
+        ui.label(ui.localize(&format!("{PREFIX}_{key}")));
+    });
+    ui.vertical(|ui| {
+        ui.set_min_width(ui.available_width());
+        value(ui);
+    });
+    ui.end_row();
 }
 
 fn authors(metadata: &mut Metadata, ui: &mut Ui) {
@@ -81,7 +136,9 @@ fn authors(metadata: &mut Metadata, ui: &mut Ui) {
             ui.horizontal(|ui| {
                 keep = !ui.button(MINUS).clicked();
                 changed |= !keep;
-                let response = TextEdit::singleline(author).ui(ui);
+                let response = TextEdit::singleline(author)
+                    .desired_width(f32::INFINITY)
+                    .ui(ui);
                 changed |= response.changed();
                 if response.lost_focus() || response.clicked_elsewhere() {
                     *author = author.trim().to_owned();
@@ -120,46 +177,6 @@ fn authors(metadata: &mut Metadata, ui: &mut Ui) {
     });
 }
 
-// fn date(metadata: &mut Metadata, ui: &mut Ui) {
-//     ui.horizontal(|ui| {
-//         let entry = metadata.entry(DATE.to_owned()).or_default();
-//         let mut date = parse_date(entry).unwrap_or_else(|_| {
-//             let date = Date::default();
-//             *entry = date.to_string();
-//             date
-//         });
-//         let response = DatePickerButton::new(&mut date)
-//             .id_salt("DatePickerButton?")
-//             .show_icon(false)
-//             .ui(ui);
-//         if response.changed() {
-//             *entry = date.to_string();
-//         }
-//         // response.context_menu(|ui| {
-//         //     if ui.button((CLIPBOARD_TEXT, "Paste")).clicked() {
-//         //         // ui.input(|input| {
-//         //         //     // TODO
-//         //         // });
-//         //     }
-//         // });
-//         // Focus
-//         if response.hovered() && ui.input(|input| input.modifiers.ctrl && input.modifiers.shift) {
-//             response.request_focus();
-//         }
-//         // Paste
-//         if response.has_focus() {
-//             ui.input(|input| {
-//                 for event in &input.raw.events {
-//                     if let Event::Paste(text) = event {
-//                         if let Ok(date) = parse_date(text) {
-//                             *entry = date.to_string();
-//                         }
-//                     }
-//                 }
-//             });
-//         }
-//     });
-// }
 fn dates(metadata: &mut Metadata, ui: &mut Ui) {
     let mut contains = false;
     if let Entry::Occupied(mut occupied) = metadata.entry(DATE.to_owned()) {
@@ -227,44 +244,6 @@ fn dates(metadata: &mut Metadata, ui: &mut Ui) {
         }
     });
 }
-// ui.horizontal(|ui| {
-//     let entry = metadata.entry(DATE.to_owned()).or_default();
-//     let mut date = parse_date(entry).unwrap_or_else(|_| {
-//         let date = Date::default();
-//         *entry = date.to_string();
-//         date
-//     });
-//     let response = DatePickerButton::new(&mut date)
-//         .id_salt("DatePickerButton?")
-//         .show_icon(false)
-//         .ui(ui);
-//     if response.changed() {
-//         *entry = date.to_string();
-//     }
-//     // Focus
-//     if response.hovered() && ui.input(|input| input.modifiers.ctrl && input.modifiers.shift) {
-//         response.request_focus();
-//     }
-//     // Paste
-//     if response.has_focus() {
-//         ui.input(|input| {
-//             for event in &input.raw.events {
-//                 if let Event::Paste(text) = event {
-//                     if let Ok(date) = parse_date(text) {
-//                         *entry = date.to_string();
-//                     }
-//                 }
-//             }
-//         });
-//     }
-//     // response.context_menu(|ui| {
-//     //     if ui.button((CLIPBOARD_TEXT, "Paste")).clicked() {
-//     //         ui.input(|input| {
-//     //             // TODO
-//     //         });
-//     //     }
-//     // });
-// });
 
 // fn description(metadata: &mut Metadata, ui: &mut Ui) {
 //     let entry = metadata.entry(DESCRIPTION.to_owned()).or_default();
@@ -292,7 +271,12 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
         }
     } else {
         let mut text = String::new();
-        let rect = ui.add_enabled(false, TextEdit::multiline(&mut text)).rect;
+        let rect = ui
+            .add_enabled(
+                false,
+                TextEdit::multiline(&mut text).desired_width(f32::INFINITY),
+            )
+            .rect;
         let response = ui.interact(
             rect,
             ui.auto_id_with("DescriptionDisableInteract"),
@@ -317,7 +301,9 @@ fn description(metadata: &mut Metadata, ui: &mut Ui) {
 
 fn name(metadata: &mut Metadata, ui: &mut Ui) {
     let entry = metadata.entry(NAME.to_owned()).or_default();
-    let response = TextEdit::singleline(entry).ui(ui);
+    let response = TextEdit::singleline(entry)
+        .desired_width(f32::INFINITY)
+        .ui(ui);
     if response.lost_focus() || response.clicked_elsewhere() {
         *entry = entry.trim().to_owned();
     }
@@ -338,7 +324,8 @@ fn parameters(metadata: &mut Metadata, ui: &mut Ui) {
         let mut changed = false;
         parameters.retain_mut(|(name, value)| {
             let mut keep = true;
-            let desired_width = ui.spacing().text_edit_width / 2.0;
+            // let desired_width = ui.spacing().text_edit_width / 2.0;
+            let desired_width = ui.available_width() / 2.0;
             ui.horizontal(|ui| {
                 keep = !ui.button(MINUS).clicked();
                 changed |= !keep;
