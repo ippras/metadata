@@ -2,50 +2,54 @@ use crate::{
     Metadata,
     r#const::{DATES, NAME, PARAMETERS, VERSIONS},
 };
+use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter, Result};
 use typed_builder::TypedBuilder;
 
 impl Metadata {
-    pub fn format(&self) -> FormatBuilder<'_, ((&Metadata,), (), (), ())> {
-        Format::builder().metadata(self)
+    pub fn format(&self) -> MetadataFormatBuilder<'_, ((&Metadata,), (), (), ())> {
+        MetadataFormat::builder().metadata(self)
     }
 }
 
 // Format metadata
 #[derive(Clone, Copy, Debug, TypedBuilder)]
-pub struct Format<'a> {
+pub struct MetadataFormat<'a> {
     metadata: &'a Metadata,
 
     #[builder(default = true)]
     parameters: bool,
     #[builder(default = true)]
-    version: bool,
-    #[builder(default, setter(transform = |separator: Option<&'a str>| Some(Date { separator })))]
-    date: Option<Date<'a>>,
+    versions: bool,
+    #[builder(default, setter(transform = |separator: Option<&'a str>| Some(DatesFormat { separator })))]
+    dates: Option<DatesFormat<'a>>,
 }
 
-impl Display for Format<'_> {
+impl Display for MetadataFormat<'_> {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        if let Some(value) = self.metadata.get(NAME) {
-            write!(f, "{value}")?;
+        write!(f, "{}", self.metadata.name)?;
+        if self.parameters && !self.metadata.parameters.is_empty() {
+            write!(f, "{{{}}}", self.metadata.parameters.iter().format(","))?;
         }
-        if self.parameters
-            && let Some(value) = self.metadata.get(PARAMETERS)
-        {
-            write!(f, "{{{value}}}")?;
+        if self.versions && !self.metadata.versions.is_empty() {
+            write!(
+                f,
+                "[{}]",
+                self.metadata
+                    .versions
+                    .iter()
+                    .format_with(",", |version, f| f(&version))
+            )?;
         }
-        if self.version
-            && let Some(value) = self.metadata.get(VERSIONS)
+        if let Some(date_format) = self.dates
+            && !self.metadata.dates.is_empty()
         {
-            write!(f, "[{}]", value.trim_start_matches("0."))?;
-        }
-        if let Some(date) = self.date
-            && let Some(value) = self.metadata.get(DATES)
-        {
-            if let Some(separator) = date.separator {
+            if let Some(separator) = date_format.separator {
                 write!(f, "{separator}")?;
             }
-            write!(f, "{value}")?;
+            if let Some(date) = self.metadata.dates.last() {
+                write!(f, "{date}")?;
+            }
         }
         Ok(())
     }
@@ -53,7 +57,7 @@ impl Display for Format<'_> {
 
 /// Date
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Date<'a> {
+pub struct DatesFormat<'a> {
     separator: Option<&'a str>,
 }
 

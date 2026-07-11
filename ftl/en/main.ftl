@@ -1,12 +1,12 @@
 Metadata_Authors = Authors
     .hover = List of authors.
-Metadata_Date = Date
-    .hover = Date the data was created or last modified.
+Metadata_Dates = Dates
+    .hover = Dates the data was created or last modified.
 Metadata_Description = Description
     .hover = Data description.
 Metadata_Name = Name
     .hover = Data name.
 Metadata_Parameters = Parameters
     .hover = Data parameters.
-Metadata_Version = Version
-    .hover = Data version.
+Metadata_Versions = Versions
+    .hover = Data versions.

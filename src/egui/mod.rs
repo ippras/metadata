@@ -105,22 +105,22 @@ impl<T: BorrowMut<Metadata>> MetadataWidget<T> {
 #[derive(Clone, Copy, Debug, Default)]
 struct MetadataOptions {
     authors: bool,
-    date: bool,
+    dates: bool,
     description: bool,
     name: bool,
     parameters: bool,
-    version: bool,
+    versions: bool,
 }
 
 impl MetadataOptions {
     fn new() -> Self {
         Self {
             authors: true,
-            date: true,
+            dates: true,
             description: true,
             name: true,
             parameters: true,
-            version: true,
+            versions: true,
         }
     }
 }
@@ -131,7 +131,7 @@ impl MetadataOptions {
     }
 
     fn with_date(self, date: bool) -> Self {
-        Self { date, ..self }
+        Self { dates: date, ..self }
     }
 
     fn with_description(self, description: bool) -> Self {
@@ -150,7 +150,7 @@ impl MetadataOptions {
     }
 
     fn with_version(self, version: bool) -> Self {
-        Self { version, ..self }
+        Self { versions: version, ..self }
     }
 }
 

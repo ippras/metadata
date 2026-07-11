@@ -6,6 +6,7 @@ use crate::{
 use const_format::formatcp;
 use egui::{Grid, Label, Response, Ui, Widget};
 use egui_l10n::ContextExt;
+use itertools::Itertools;
 
 /// Readable metadata widget
 pub(super) struct Readable<'a> {
@@ -24,46 +25,34 @@ impl Readable<'_> {
         Grid::new(ui.next_auto_id())
             .show(ui, |ui| {
                 if self.options.name {
-                    if let Some(value) = self.metadata.get(NAME) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{NAME}")));
-                        ui.label(value);
-                        ui.end_row();
-                    }
+                    ui.label(ui.localize(formatcp!("{PREFIX}_{NAME}")));
+                    ui.label(&self.metadata.name);
+                    ui.end_row();
                 }
                 if self.options.description {
-                    if let Some(value) = self.metadata.get(DESCRIPTION) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{DESCRIPTION}")));
-                        Label::new(value).truncate().ui(ui);
-                        ui.end_row();
-                    }
+                    ui.label(ui.localize(formatcp!("{PREFIX}_{DESCRIPTION}")));
+                    Label::new(&self.metadata.description).truncate().ui(ui);
+                    ui.end_row();
                 }
-                if self.options.authors {
-                    if let Some(value) = self.metadata.get(AUTHORS) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{AUTHORS}")));
-                        ui.label(value);
-                        ui.end_row();
-                    }
+                if self.options.authors && !self.metadata.authors.is_empty() {
+                    ui.label(ui.localize(formatcp!("{PREFIX}_{AUTHORS}")));
+                    ui.label(self.metadata.authors.iter().format(", ").to_string());
+                    ui.end_row();
                 }
-                if self.options.parameters {
-                    if let Some(value) = self.metadata.get(PARAMETERS) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{PARAMETERS}")));
-                        ui.label(value);
-                        ui.end_row();
-                    }
+                if self.options.parameters && !self.metadata.parameters.is_empty() {
+                    ui.label(ui.localize(formatcp!("{PREFIX}_{PARAMETERS}")));
+                    ui.label(self.metadata.parameters.iter().format(", ").to_string());
+                    ui.end_row();
                 }
-                if self.options.version {
-                    if let Some(value) = self.metadata.get(VERSIONS) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{VERSIONS}")));
-                        ui.label(value);
-                        ui.end_row();
-                    }
+                if self.options.versions && !self.metadata.versions.is_empty() {
+                    ui.label(ui.localize(formatcp!("{PREFIX}_{VERSIONS}")));
+                    ui.label(self.metadata.versions.iter().format(", ").to_string());
+                    ui.end_row();
                 }
-                if self.options.date {
-                    if let Some(value) = self.metadata.get(DATES) {
-                        ui.label(ui.localize(formatcp!("{PREFIX}_{DATES}")));
-                        ui.label(value);
-                        ui.end_row();
-                    }
+                if self.options.dates && !self.metadata.dates.is_empty() {
+                    ui.label(ui.localize(formatcp!("{PREFIX}_{DATES}")));
+                    ui.label(self.metadata.dates.iter().format(", ").to_string());
+                    ui.end_row();
                 }
             })
             .response
