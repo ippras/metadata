@@ -16,16 +16,25 @@ pub mod polars;
 mod format;
 
 use jiff::civil::Date;
+use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
     fmt::{Debug, Display, Formatter},
     ops::{Deref, DerefMut},
+    sync::LazyLock,
 };
 
 use crate::r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, VERSIONS};
 
 pub const ID_SALT: &str = "Metadata";
+
+pub static PRETTY_CONFIG: LazyLock<PrettyConfig> = LazyLock::new(|| {
+    PrettyConfig::new()
+        .depth_limit(2)
+        .extensions(Extensions::UNWRAP_NEWTYPES)
+        .new_line("\n")
+});
 
 // /// Metadata
 // #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -101,17 +110,17 @@ pub const ID_SALT: &str = "Metadata";
 /// Metadata
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Metadata {
-    #[serde(skip_serializing_if = "String::is_empty", default)]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub name: String,
-    #[serde(skip_serializing_if = "String::is_empty", default)]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub description: String,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub authors: Vec<String>,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub parameters: Vec<Parameter>,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub versions: Vec<Version>,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub dates: Vec<Date>,
 }
 
@@ -148,14 +157,15 @@ impl TryFrom<Metadata> for BTreeMap<String, String> {
 /// Version
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Parameter {
-    pub key: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
 }
 
 impl Parameter {
     fn new() -> Self {
         Self {
-            key: String::new(),
+            name: String::new(),
             value: None,
         }
     }
@@ -163,7 +173,7 @@ impl Parameter {
 
 impl Display for Parameter {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.key)?;
+        write!(f, "{}", self.name)?;
         if let Some(value) = &self.value {
             write!(f, "={value}")?;
         }
@@ -172,7 +182,9 @@ impl Display for Parameter {
 }
 
 /// Version
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct Version(u64, u64, u64);
 
 impl Version {
@@ -262,8 +274,8 @@ mod test {
         // meta.insert(VERSIONS.to_owned(), Version::new(0, 0, 1).to_string());
         // meta.insert(DATES.to_owned(), Date::default().to_string());
         println!("meta: {}", meta.format().build());
-        println!("meta: {}", meta.format().dates(None).build());
-        println!("meta: {}", meta.format().dates(Some(" ")).build());
-        println!("meta: {}", meta.format().dates(Some(".")).build());
+        println!("meta: {}", meta.format().date(None).build());
+        println!("meta: {}", meta.format().date(Some(" ")).build());
+        println!("meta: {}", meta.format().date(Some(".")).build());
     }
 }

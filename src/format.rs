@@ -22,7 +22,7 @@ pub struct MetadataFormat<'a> {
     #[builder(default = true)]
     versions: bool,
     #[builder(default, setter(transform = |separator: Option<&'a str>| Some(DatesFormat { separator })))]
-    dates: Option<DatesFormat<'a>>,
+    date: Option<DatesFormat<'a>>,
 }
 
 impl Display for MetadataFormat<'_> {
@@ -41,7 +41,7 @@ impl Display for MetadataFormat<'_> {
                     .format_with(",", |version, f| f(&version))
             )?;
         }
-        if let Some(date_format) = self.dates
+        if let Some(date_format) = self.date
             && !self.metadata.dates.is_empty()
         {
             if let Some(separator) = date_format.separator {

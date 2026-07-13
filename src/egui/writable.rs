@@ -73,9 +73,6 @@ impl Writable<'_> {
             if self.options.dates {
                 key_value(ui, DATES, |ui| dates(&mut self.metadata.dates, ui));
             }
-            ui.separator();
-            ui.separator();
-            ui.end_row();
         });
         // let height = ui.spacing().interact_size.y;
         // TableBuilder::new(ui)
@@ -200,7 +197,7 @@ fn name(name: &mut String, ui: &mut Ui) {
 }
 
 fn parameters(parameters: &mut Vec<Parameter>, ui: &mut Ui) {
-    parameters.retain_mut(|Parameter { key, value }| {
+    parameters.retain_mut(|Parameter { name: key, value }| {
         let mut keep = true;
         // let desired_width = ui.spacing().text_edit_width / 2.0;
         // let desired_width = ui.available_width() / 2.0;
@@ -244,7 +241,7 @@ fn parameters(parameters: &mut Vec<Parameter>, ui: &mut Ui) {
         }
         if ui.button(SORT_ASCENDING).clicked() {
             parameters.retain_mut(|parameter| {
-                !parameter.key.is_empty()
+                !parameter.name.is_empty()
                     || parameter
                         .value
                         .as_ref()
