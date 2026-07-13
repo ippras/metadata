@@ -1,7 +1,4 @@
-use crate::{
-    Metadata,
-    r#const::{DATES, NAME, PARAMETERS, VERSIONS},
-};
+use crate::Metadata;
 use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter, Result};
 use typed_builder::TypedBuilder;
@@ -23,11 +20,18 @@ pub struct MetadataFormat<'a> {
     versions: bool,
     #[builder(default, setter(transform = |separator: Option<&'a str>| Some(DatesFormat { separator })))]
     date: Option<DatesFormat<'a>>,
+    // #[builder(default, setter(strip_option))]
+    // separator: Option<&'a str>,
 }
 
 impl Display for MetadataFormat<'_> {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{}", self.metadata.name)?;
+        // if !self.metadata.name.is_empty()
+        //     && let Some(separator) = self.separator
+        // {
+        //     f.write_str(separator)?;
+        // }
         if self.parameters && !self.metadata.parameters.is_empty() {
             write!(f, "{{{}}}", self.metadata.parameters.iter().format(","))?;
         }
@@ -72,55 +76,5 @@ pub struct DatesFormat<'a> {
 //         // self.mean(mean_and_standard_deviation.mean)
 //         //     .standard_deviation(mean_and_standard_deviation.standard_deviation)
 //         //     .relative(mean_and_standard_deviation.kind.is_relative())
-//     }
-// }
-
-// impl Metadata {
-//     pub fn format(&self, separator: &str) -> impl Debug + Display {
-//         from_fn(move |f| {
-//             if let Some(name) = self.get(NAME) {
-//                 write!(f, "{name}")?;
-//             }
-//             if let Some(parameters) = self.get(PARAMETERS)
-//                 && !parameters.is_empty()
-//             {
-//                 write!(f, "{{{parameters}}}")?;
-//             }
-//             if let Some(version) = self.get(VERSION)
-//                 && version != DEFAULT_VERSION
-//             {
-//                 write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
-//             }
-//             if let Some(date) = self.get(DATE)
-//                 && date != DEFAULT_DATE
-//             {
-//                 write!(f, "{separator}{date}")?;
-//             }
-//             Ok(())
-//         })
-//     }
-// }
-
-// impl Display for Metadata {
-//     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-//         if let Some(name) = self.get(NAME) {
-//             write!(f, "{name}")?;
-//         }
-//         if let Some(parameters) = self.get(PARAMETERS)
-//             && !parameters.is_empty()
-//         {
-//             write!(f, "{{{parameters}}}")?;
-//         }
-//         if let Some(version) = self.get(VERSION)
-//             && version != DEFAULT_VERSION
-//         {
-//             write!(f, "[{}]", version.trim_start_matches(['0', '.']))?;
-//         }
-//         if let Some(date) = self.get(DATE)
-//             && date != DEFAULT_DATE
-//         {
-//             write!(f, "{date}")?;
-//         }
-//         Ok(())
 //     }
 // }

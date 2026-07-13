@@ -15,17 +15,15 @@ pub mod polars;
 
 mod format;
 
+use crate::r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, VERSIONS};
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
     fmt::{Debug, Display, Formatter},
-    ops::{Deref, DerefMut},
     sync::LazyLock,
 };
-
-use crate::r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, VERSIONS};
 
 pub const ID_SALT: &str = "Metadata";
 
@@ -35,77 +33,6 @@ pub static PRETTY_CONFIG: LazyLock<PrettyConfig> = LazyLock::new(|| {
         .extensions(Extensions::UNWRAP_NEWTYPES | Extensions::IMPLICIT_SOME)
         .new_line("\n")
 });
-
-// /// Metadata
-// #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-// pub struct Metadata(pub BTreeMap<String, String>);
-
-// impl Metadata {
-//     pub fn new() -> Self {
-//         Self(BTreeMap::new())
-//     }
-// }
-
-// impl Deref for Metadata {
-//     type Target = BTreeMap<String, String>;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self.0
-//     }
-// }
-
-// impl DerefMut for Metadata {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.0
-//     }
-// }
-
-// impl FromIterator<(String, String)> for Metadata {
-//     fn from_iter<T: IntoIterator<Item = (String, String)>>(iter: T) -> Self {
-//         Self(BTreeMap::from_iter(iter))
-//     }
-// }
-
-// /// Metadata value
-// #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-// pub enum Value {
-//     Name(String),
-//     Description(String),
-//     Authors(Vec<String>),
-//     Parameters(Vec<Parameter>),
-//     Versions(Vec<Version>),
-//     Dates(Vec<Date>),
-// }
-
-// /// Metadata
-// #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-// pub struct AMetadata(pub BTreeMap<String, Value>);
-
-// impl AMetadata {
-//     pub fn new() -> Self {
-//         Self(BTreeMap::new())
-//     }
-// }
-
-// impl Deref for AMetadata {
-//     type Target = BTreeMap<String, Value>;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self.0
-//     }
-// }
-
-// impl DerefMut for AMetadata {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.0
-//     }
-// }
-
-// impl FromIterator<(String, Value)> for AMetadata {
-//     fn from_iter<T: IntoIterator<Item = (String, Value)>>(iter: T) -> Self {
-//         Self(BTreeMap::from_iter(iter))
-//     }
-// }
 
 /// Metadata
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
