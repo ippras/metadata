@@ -29,7 +29,7 @@ impl Readable<'_> {
                     ui.label(&self.metadata.name);
                     ui.end_row();
                 }
-                if self.options.description {
+                if self.options.description && !self.metadata.description.is_empty() {
                     ui.label(ui.localize(formatcp!("{PREFIX}_{DESCRIPTION}")));
                     Label::new(&self.metadata.description).truncate().ui(ui);
                     ui.end_row();

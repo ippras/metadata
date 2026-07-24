@@ -1,10 +1,11 @@
 use crate::Metadata;
+use egui::{Atom, AtomExt, Atoms, IntoAtoms, RichText};
 use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter, Result};
 use typed_builder::TypedBuilder;
 
 impl Metadata {
-    pub fn format(&self) -> MetadataFormatBuilder<'_, ((&Metadata,), (), (), ())> {
+    pub fn format(&self) -> MetadataFormatBuilder<'_, ((&Metadata,), (), (), (), ())> {
         MetadataFormat::builder().metadata(self)
     }
 }
@@ -18,14 +19,48 @@ pub struct MetadataFormat<'a> {
     parameters: bool,
     #[builder(default = true)]
     versions: bool,
-    #[builder(default, setter(transform = |separator: Option<&'a str>| Some(DatesFormat { separator })))]
-    date: Option<DatesFormat<'a>>,
-    // #[builder(default, setter(strip_option))]
-    // separator: Option<&'a str>,
+    #[builder(default = true)]
+    date: bool,
+    #[builder(default, setter(strip_option))]
+    separator: Option<&'a str>,
+}
+
+impl IntoAtoms<'_> for MetadataFormat<'_> {
+    fn collect(self, atoms: &mut Atoms<'_>) {
+        atoms.push_right(&self.metadata.name);
+        if self.date && !self.metadata.dates.is_empty() {
+            if let Some(date) = self.metadata.dates.last() {
+                atoms.push_left(RichText::new(date.to_string()).weak());
+            }
+        }
+
+        if self.parameters && !self.metadata.parameters.is_empty() {
+            atoms.push_right(
+                Atom::from(format!(
+                    "{{{}}}",
+                    self.metadata.parameters.iter().format("}{")
+                ))
+                .atom_shrink(true),
+            );
+        } else {
+            atoms.push_right(Atom::default().atom_shrink(true));
+        }
+        if self.versions && !self.metadata.versions.is_empty() {
+            atoms.push_right(format!("[{}]", self.metadata.versions.iter().format("][")));
+        }
+    }
 }
 
 impl Display for MetadataFormat<'_> {
     fn fmt(&self, f: &mut Formatter) -> Result {
+        if self.date && !self.metadata.dates.is_empty() {
+            if let Some(date) = self.metadata.dates.last() {
+                write!(f, "{date}")?;
+            }
+            if let Some(separator) = self.separator {
+                write!(f, "{separator}")?;
+            }
+        }
         write!(f, "{}", self.metadata.name)?;
         // if !self.metadata.name.is_empty()
         //     && let Some(separator) = self.separator
@@ -33,27 +68,16 @@ impl Display for MetadataFormat<'_> {
         //     f.write_str(separator)?;
         // }
         if self.parameters && !self.metadata.parameters.is_empty() {
-            write!(f, "{{{}}}", self.metadata.parameters.iter().format(","))?;
-        }
-        if self.versions && !self.metadata.versions.is_empty() {
-            write!(
-                f,
-                "[{}]",
-                self.metadata
-                    .versions
-                    .iter()
-                    .format_with(",", |version, f| f(&version))
-            )?;
-        }
-        if let Some(date_format) = self.date
-            && !self.metadata.dates.is_empty()
-        {
-            if let Some(separator) = date_format.separator {
+            if let Some(separator) = self.separator {
                 write!(f, "{separator}")?;
             }
-            if let Some(date) = self.metadata.dates.last() {
-                write!(f, "{date}")?;
+            write!(f, "{{{}}}", self.metadata.parameters.iter().format("}{"))?;
+        }
+        if self.versions && !self.metadata.versions.is_empty() {
+            if let Some(separator) = self.separator {
+                write!(f, "{separator}")?;
             }
+            write!(f, "[{}]", self.metadata.versions.iter().format("]["))?;
         }
         Ok(())
     }

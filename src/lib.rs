@@ -200,9 +200,9 @@ mod test {
         // );
         // meta.insert(VERSIONS.to_owned(), Version::new(0, 0, 1).to_string());
         // meta.insert(DATES.to_owned(), Date::default().to_string());
+        println!("meta: {}", meta.format().date(false).build());
         println!("meta: {}", meta.format().build());
-        println!("meta: {}", meta.format().date(None).build());
-        println!("meta: {}", meta.format().date(Some(" ")).build());
-        println!("meta: {}", meta.format().date(Some(".")).build());
+        println!("meta: {}", meta.format().separator(" ").build());
+        println!("meta: {}", meta.format().separator(".").build());
     }
 }
