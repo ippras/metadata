@@ -7,13 +7,13 @@ pub mod l10n {
 }
 
 pub mod r#const;
+pub mod format;
+pub mod join;
 
 #[cfg(feature = "egui")]
 pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
-
-mod format;
 
 use crate::r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, VERSIONS};
 use jiff::civil::Date;
