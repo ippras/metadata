@@ -1,5 +1,5 @@
 use crate::{Metadata, Parameter, Version};
-use itertools::Itertools as _;
+use itertools::{Either, Itertools as _};
 use jiff::civil::Date;
 
 pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
@@ -8,7 +8,7 @@ pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
     meta.dates = dates(iter.clone());
     meta.name = name(iter.clone());
     meta.parameters = parameters(iter.clone());
-    meta.versions = versions(iter.clone());
+    meta.versions = versions(iter.clone(), true);
 
     // meta.insert(AUTHORS.to_owned(), authors(frames));
     // meta.insert(DATE.to_owned(), date(frames));
@@ -56,8 +56,14 @@ pub fn parameters<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<Parameter
         .collect()
 }
 
-pub fn versions<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<Version> {
-    iter.flat_map(|meta| &meta.versions).copied().collect()
+pub fn versions<'a>(iter: impl Iterator<Item = &'a Metadata>, unique: bool) -> Vec<Version> {
+    let iter = iter.flat_map(|meta| &meta.versions);
+    let iter = if unique {
+        Either::Right(iter.unique())
+    } else {
+        Either::Left(iter)
+    };
+    iter.copied().collect()
 }
 
 pub fn longest_common_prefix(strings: Vec<&str>) -> &str {
