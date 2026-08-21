@@ -13,7 +13,7 @@ egui_extras = { version = "0.34.3", features = [
     "datepicker",
     "serde",
 ], optional = true }
-itertools = "0.14.0"
+itertools = "0.15.0"
 jiff = { version = "0.2.23", features = ["serde"] }
 polars = { version = "=0.52.0", default-features = false, features = [
     "serde",
@@ -21,7 +21,7 @@ polars = { version = "=0.52.0", default-features = false, features = [
 ron = "0.12.2"
 semver = { version = "1.0.28", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive", "std"] }
-thiserror = "2.0.18"
+thiserror = "2.0.20"
 tracing = "0.1.44"
 typed-builder = "0.23.2"
 
