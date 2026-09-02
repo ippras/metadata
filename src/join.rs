@@ -4,18 +4,13 @@ use jiff::civil::Date;
 
 pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
     let mut meta = Metadata::default();
+
     meta.authors = authors(iter.clone());
     meta.dates = dates(iter.clone());
-    meta.name = name(iter.clone());
+    meta.name = name(iter.clone(), false);
     meta.parameters = parameters(iter.clone());
     meta.versions = versions(iter.clone(), true);
 
-    // meta.insert(AUTHORS.to_owned(), authors(frames));
-    // meta.insert(DATE.to_owned(), date(frames));
-    // meta.insert(DESCRIPTION.to_owned(), description(frames));
-    // meta.insert(NAME.to_owned(), name(frames));
-    // meta.insert(PARAMETERS.to_owned(), parameters(frames));
-    // meta.insert(VERSION.to_owned(), DEFAULT_VERSION.to_owned());
     meta
 }
 
@@ -44,8 +39,14 @@ pub fn dates<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<Date> {
 //     longest_common_prefix(descriptions).to_owned()
 // }
 
-pub fn name<'a>(iter: impl Iterator<Item = &'a Metadata>) -> String {
-    iter.map(|meta| &meta.name).unique().join(" & ")
+pub fn name<'a>(mut iter: impl Iterator<Item = &'a Metadata>, first_plus: bool) -> String {
+    if first_plus {
+        let name = iter.next().map(|meta| &*meta.name).unwrap_or_default();
+        let count = iter.count();
+        format!("{name} +{count}",)
+    } else {
+        iter.map(|meta| &meta.name).unique().join(" & ")
+    }
 }
 
 pub fn parameters<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<Parameter> {
