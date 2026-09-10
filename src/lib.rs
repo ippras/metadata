@@ -81,7 +81,7 @@ impl TryFrom<Metadata> for BTreeMap<String, String> {
     }
 }
 
-/// Version
+/// Parameter
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Parameter {
     pub name: String,
