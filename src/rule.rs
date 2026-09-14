@@ -1,3 +1,18 @@
+use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
+use std::sync::LazyLock;
+
+pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
+    [
+        Rule::new(Name::exact(AUTHOR), Value::All),
+        Rule::new(Name::exact(DATE), Value::All),
+        Rule::new(Name::exact(DESCRIPTION), Value::All),
+        Rule::new(Name::exact(IDENTIFIER), Value::All),
+        Rule::new(Name::exact(NAME), Value::All),
+        Rule::new(Name::exact(VERSION), Value::All),
+        Rule::new(Name::All, Value::All),
+    ]
+});
+
 /// Rule
 pub struct Rule {
     pub name: Name,

@@ -7,14 +7,14 @@ use crate::{
     rule::SPECIAL_ALPHABETICAL_RULES,
 };
 use egui::{
-    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextStyle, TextWrapMode,
-    Ui, Widget,
+    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextWrapMode, Ui, Widget,
     cache::{ComputerMut, FrameCache},
     containers::menu::{MenuButton, MenuConfig},
 };
 use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
 use egui_l10n::ContextExt;
-use egui_phosphor::regular::{MINUS, PLUS, SORT_ASCENDING};
+use egui_phosphor::regular::{CARET_DOWN, CARET_UP, MINUS, PLUS, SORT_ASCENDING};
+use jiff::civil::Date;
 
 /// Writable parameters widget
 pub struct Writable<'a> {
@@ -29,143 +29,135 @@ impl<'a> Writable<'a> {
 
 impl Writable<'_> {
     pub fn show(&mut self, ui: &mut Ui) {
-        let mut sort_clicked = false;
-        let mut to_remove = Vec::new();
-
-        let header_height = ui.text_style_height(&TextStyle::Heading);
-        let body_height = ui.text_style_height(&TextStyle::Body);
-        let width = ui.style().spacing.text_edit_width;
-        // Отрисовываем таблицу параметров
-        TableBuilder::new(ui)
-            .striped(true) // Полосатый фон для лучшей читаемости строк
-            .resizable(true)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto().resizable(false)) // Кнопка удаления (MINUS)
-            .column(Column::auto_with_initial_suggestion(width)) // Поле ключа (Name)
-            .column(Column::auto().resizable(false)) // Переключатель наличия значения (EQUAL)
-            .column(Column::remainder()) // Поле значения (Value)
-            // .column(Column::auto_with_initial_suggestion(width)) // Поле значения (Value)
-            .header(header_height, |mut header| {
-                header.col(|ui| {
-                    ui.add_enabled_ui(!self.parameters.is_empty(), |ui| {
-                        if ui.button(SORT_ASCENDING).clicked() {
-                            sort_clicked = true;
-                        }
-                    });
+        // Используем Grid для ровного выравнивания колонок
+        Grid::new("parameters_grid")
+            .num_columns(5)
+            .spacing([12.0, 8.0])
+            .striped(true) // Добавляет зебру для удобства чтения
+            .show(ui, |ui| {
+                // --- ЗАГОЛОВОК ТАБЛИЦЫ ---
+                ui.add_enabled_ui(!self.parameters.is_empty(), |ui| {
+                    if ui.button(SORT_ASCENDING).clicked() {
+                        self.parameters.retain_mut(|parameter| {
+                            !parameter.name.is_empty()
+                                || parameter
+                                    .value
+                                    .as_ref()
+                                    .is_some_and(|value| !value.is_empty())
+                        });
+                        self.parameters
+                            .filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
+                    }
                 });
-                header.col(|ui| {
-                    ui.heading("Name");
-                });
-                header.col(|_ui| {
-                    // Пустой заголовок для столбца с кнопкой EQUAL
-                });
-                header.col(|ui| {
-                    ui.heading("Value");
-                });
-            })
-            .body(|body| {
-                body.rows(body_height, self.parameters.len(), |mut row| {
-                    let index = row.index();
-                    let parameter = &mut self.parameters[index];
+                ui.heading("Name");
+                ui.label(""); // Пустая ячейка над кнопкой "="
+                ui.heading("Value");
+                ui.label("Mode"); // Заголовок для колонки переключения режимов
+                ui.end_row();
 
-                    // Столбец 1: Кнопка удаления
-                    row.col(|ui| {
-                        if ui.button(MINUS).clicked() {
-                            to_remove.push(index);
-                        }
-                    });
+                // --- СТРОКИ ПАРАМЕТРОВ ---
+                self.parameters.retain_mut(|Parameter { name, value }| {
+                    let mut keep = true;
 
-                    // Столбец 2: Поле ключа (имени)
-                    row.col(|ui| {
-                        let response = TextEdit::singleline(&mut parameter.name)
-                            .desired_width(f32::INFINITY) // Заполняем всю ширину колонки
-                            .ui(ui);
-                        if response.lost_focus() || response.clicked_elsewhere() {
-                            parameter.name = parameter.name.trim().to_owned();
-                        }
-                    });
+                    // 1. Колонка: Кнопка удаления
+                    if ui.button(MINUS).clicked() {
+                        keep = false;
+                    }
 
-                    // Столбец 3: Переключатель наличия значения
-                    row.col(|ui| {
-                        let checked = parameter.value.is_some();
-                        if ui.selectable_label(checked, EQUAL).clicked() {
-                            parameter.value = if checked { None } else { Some(String::new()) };
-                        }
-                    });
+                    // 2. Колонка: Поле ключа (имени)
+                    let response = TextEdit::singleline(name).ui(ui);
+                    if response.lost_focus() || response.clicked_elsewhere() {
+                        *name = name.trim().to_owned();
+                    }
 
-                    // Столбец 4: Поле значения со специальными эдиторами
-                    row.col(|ui| {
-                        if let Some(value) = &mut parameter.value {
-                            match &*parameter.name {
+                    // 3. Колонка: Переключатель наличия значения
+                    let checked = value.is_some();
+                    if ui.selectable_label(checked, EQUAL).clicked() {
+                        *value = if checked { None } else { Some(String::new()) };
+                    }
+
+                    // 4 & 5. Колонки: Поле значения и Кнопка режима
+                    if let Some(value) = value {
+                        let is_special_key = matches!(&**name, DATE | IDENTIFIER | DESCRIPTION);
+
+                        // Получаем состояние режима (raw или special) из памяти egui.
+                        // Привязываем ID состояния к имени параметра.
+                        let mode_id = ui.id().with(name.as_str());
+                        let mut is_raw_mode =
+                            ui.data(|data| data.get_temp::<bool>(mode_id).unwrap_or(false));
+
+                        // 4. Колонка: Само поле значения
+                        if is_special_key && !is_raw_mode {
+                            match &**name {
                                 DATE => {
                                     let mut date = value.parse().unwrap_or_default();
-                                    if DatePickerButton::new(&mut date)
-                                        .id_salt(&ui.next_auto_id().value().to_string())
-                                        .ui(ui)
+                                    if ui
+                                        .add(
+                                            DatePickerButton::new(&mut date)
+                                                .id_salt(&ui.next_auto_id().value().to_string()),
+                                        )
                                         .changed()
                                     {
                                         *value = date.to_string();
                                     }
                                 }
                                 IDENTIFIER => {
-                                    let mut number = value.parse::<u64>().unwrap_or(0);
-                                    if DragValue::new(&mut number).speed(0.1).ui(ui).changed() {
-                                        *value = number.to_string();
+                                    let mut num = value.parse::<f64>().unwrap_or(0.0);
+                                    if ui.add(DragValue::new(&mut num).speed(0.1)).changed() {
+                                        *value = num.to_string();
                                     }
                                 }
                                 DESCRIPTION => {
-                                    // Многострочный редактор для описания
-                                    let response = TextEdit::multiline(value)
-                                        .desired_width(f32::INFINITY)
-                                        .ui(ui);
+                                    let response =
+                                        TextEdit::multiline(value).desired_width(250.0).ui(ui);
                                     if response.lost_focus() || response.clicked_elsewhere() {
                                         *value = value.trim().to_owned();
                                     }
                                 }
-                                _ => {
-                                    // Стандартный однострочный редактор для всех остальных
-                                    let response = TextEdit::singleline(value)
-                                        .desired_width(f32::INFINITY)
-                                        .ui(ui);
-                                    if response.lost_focus() || response.clicked_elsewhere() {
-                                        *value = value.trim().to_owned();
-                                    }
-                                }
+                                _ => unreachable!(),
                             }
                         } else {
-                            ui.disable();
-                            let mut text = String::new();
-                            TextEdit::singleline(&mut text)
-                                .desired_width(f32::INFINITY)
-                                .ui(ui);
+                            // --- ТЕКСТОВЫЙ РЕЖИМ (Raw Text) ---
+                            // Для DESCRIPTION оставляем multiline даже в raw-режиме для удобства
+                            let response = if name == DESCRIPTION {
+                                TextEdit::multiline(value).desired_width(250.0).ui(ui)
+                            } else {
+                                TextEdit::singleline(value).desired_width(250.0).ui(ui)
+                            };
+
+                            if response.lost_focus() || response.clicked_elsewhere() {
+                                *value = value.trim().to_owned();
+                            }
                         }
-                    });
+
+                        // 5. Колонка: Кнопка переключения режима
+                        if is_special_key {
+                            let btn_text = if is_raw_mode { "Widget" } else { "Text" };
+                            if ui
+                                .button(btn_text)
+                                .on_hover_text("Toggle editor mode")
+                                .clicked()
+                            {
+                                is_raw_mode = !is_raw_mode;
+                                // Сохраняем новое состояние в память egui
+                                ui.data_mut(|d| d.insert_temp(mode_id, is_raw_mode));
+                            }
+                        } else {
+                            ui.label(""); // Пустая ячейка, если ключ обычный
+                        }
+                    } else {
+                        // Если значения нет (отключено кнопкой EQUAL)
+                        ui.disable();
+                        TextEdit::singleline(&mut String::new())
+                            .desired_width(250.0)
+                            .ui(ui);
+                        ui.label(""); // Пустая ячейка режима
+                    }
+
+                    ui.end_row(); // Обязательно завершаем строку Grid
+                    keep
                 });
             });
-
-        // Обработка отложенных действий (удаление и сортировка)
-        // Выполняем после отрисовки таблицы, чтобы избежать проблем с заимствованием (borrow checker)
-
-        if !to_remove.is_empty() {
-            let mut i = 0;
-            self.parameters.retain_mut(|_| {
-                let keep = !to_remove.contains(&i);
-                i += 1;
-                keep
-            });
-        }
-
-        if sort_clicked {
-            self.parameters.retain_mut(|parameter| {
-                !parameter.name.is_empty()
-                    || parameter
-                        .value
-                        .as_ref()
-                        .is_some_and(|value| !value.is_empty())
-            });
-            self.parameters
-                .filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
-        }
 
         // Кнопка добавления
         if ui.button(PLUS).clicked() {

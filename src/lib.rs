@@ -91,7 +91,7 @@ impl Parameters {
         Self(Vec::new())
     }
 
-    pub fn push(&mut self, name: impl Into<String>, value: Option<impl ToString>) {
+    pub fn push_name_value(&mut self, name: impl Into<String>, value: Option<impl ToString>) {
         self.0.push(Parameter {
             name: name.into(),
             value: value.map(|value| value.to_string()),
@@ -270,15 +270,15 @@ mod test {
     #[test]
     fn test() {
         let mut parameters = Parameters::new();
-        parameters.push(NAME, Some("VIR-2699"));
-        parameters.push(DATE, Some(date(2026, 09, 11)));
-        parameters.push(DATE, Some(date(2026, 09, 09)));
-        parameters.push(DESCRIPTION, Some("Cat. No. 2699, Прогресс, Россия"));
-        parameters.push(AUTHOR, Some(GVK));
-        parameters.push(AUTHOR, Some(RAS));
-        parameters.push(VERSION, Some(Version(1, 2, 3)));
-        parameters.push(VERSION, Some(Version(0, 1, 2)));
-        parameters.push("CustomName", Some("CustomValue"));
+        parameters.push_name_value(NAME, Some("VIR-2699"));
+        parameters.push_name_value(DATE, Some(date(2026, 09, 11)));
+        parameters.push_name_value(DATE, Some(date(2026, 09, 09)));
+        parameters.push_name_value(DESCRIPTION, Some("Cat. No. 2699, Прогресс, Россия"));
+        parameters.push_name_value(AUTHOR, Some(RAS));
+        parameters.push_name_value(AUTHOR, Some(GVK));
+        parameters.push_name_value(VERSION, Some(Version(1, 2, 3)));
+        parameters.push_name_value(VERSION, Some(Version(0, 1, 2)));
+        parameters.push_name_value("CustomName", Some("CustomValue"));
         println!("parameters: {parameters:#?}");
 
         parameters.filter_and_sort(&[

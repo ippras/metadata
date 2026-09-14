@@ -7,8 +7,7 @@ use crate::{
     rule::SPECIAL_ALPHABETICAL_RULES,
 };
 use egui::{
-    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextStyle, TextWrapMode,
-    Ui, Widget,
+    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextWrapMode, Ui, Widget,
     cache::{ComputerMut, FrameCache},
     containers::menu::{MenuButton, MenuConfig},
 };
@@ -29,143 +28,115 @@ impl<'a> Writable<'a> {
 
 impl Writable<'_> {
     pub fn show(&mut self, ui: &mut Ui) {
-        let mut sort_clicked = false;
-        let mut to_remove = Vec::new();
-
-        let header_height = ui.text_style_height(&TextStyle::Heading);
-        let body_height = ui.text_style_height(&TextStyle::Body);
-        let width = ui.style().spacing.text_edit_width;
-        // Отрисовываем таблицу параметров
-        TableBuilder::new(ui)
-            .striped(true) // Полосатый фон для лучшей читаемости строк
-            .resizable(true)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto().resizable(false)) // Кнопка удаления (MINUS)
-            .column(Column::auto_with_initial_suggestion(width)) // Поле ключа (Name)
-            .column(Column::auto().resizable(false)) // Переключатель наличия значения (EQUAL)
-            .column(Column::remainder()) // Поле значения (Value)
-            // .column(Column::auto_with_initial_suggestion(width)) // Поле значения (Value)
-            .header(header_height, |mut header| {
-                header.col(|ui| {
-                    ui.add_enabled_ui(!self.parameters.is_empty(), |ui| {
-                        if ui.button(SORT_ASCENDING).clicked() {
-                            sort_clicked = true;
-                        }
+        // Кнопка сортировки
+        ui.add_enabled_ui(!self.parameters.is_empty(), |ui| {
+            ui.horizontal(|ui| {
+                if ui.button(SORT_ASCENDING).clicked() {
+                    // Удаляем пустые параметры перед сортировкой
+                    self.parameters.retain_mut(|parameter| {
+                        !parameter.name.is_empty()
+                            || parameter
+                                .value
+                                .as_ref()
+                                .is_some_and(|value| !value.is_empty())
                     });
-                });
-                header.col(|ui| {
-                    ui.heading("Name");
-                });
-                header.col(|_ui| {
-                    // Пустой заголовок для столбца с кнопкой EQUAL
-                });
-                header.col(|ui| {
-                    ui.heading("Value");
-                });
-            })
-            .body(|body| {
-                body.rows(body_height, self.parameters.len(), |mut row| {
-                    let index = row.index();
-                    let parameter = &mut self.parameters[index];
+                    self.parameters
+                        .filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
+                }
+                ui.heading("Name");
+                ui.heading("Value");
+            });
+        });
 
-                    // Столбец 1: Кнопка удаления
-                    row.col(|ui| {
-                        if ui.button(MINUS).clicked() {
-                            to_remove.push(index);
-                        }
-                    });
+        // Отрисовываем список параметров
+        self.parameters.retain_mut(|Parameter { name, value }| {
+            let mut keep = true;
+            let available_width = ui.available_width();
 
-                    // Столбец 2: Поле ключа (имени)
-                    row.col(|ui| {
-                        let response = TextEdit::singleline(&mut parameter.name)
-                            .desired_width(f32::INFINITY) // Заполняем всю ширину колонки
-                            .ui(ui);
-                        if response.lost_focus() || response.clicked_elsewhere() {
-                            parameter.name = parameter.name.trim().to_owned();
-                        }
-                    });
+            ui.horizontal(|ui| {
+                // Кнопка удаления
+                keep = !ui.button(MINUS).clicked();
 
-                    // Столбец 3: Переключатель наличия значения
-                    row.col(|ui| {
-                        let checked = parameter.value.is_some();
-                        if ui.selectable_label(checked, EQUAL).clicked() {
-                            parameter.value = if checked { None } else { Some(String::new()) };
-                        }
-                    });
+                // Поле ключа (имени)
+                let response = TextEdit::singleline(name)
+                    .desired_width(ui.spacing().text_edit_width.min(available_width / 2.0))
+                    .ui(ui);
+                if response.lost_focus() || response.clicked_elsewhere() {
+                    *name = name.trim().to_owned();
+                }
 
-                    // Столбец 4: Поле значения со специальными эдиторами
-                    row.col(|ui| {
-                        if let Some(value) = &mut parameter.value {
-                            match &*parameter.name {
-                                DATE => {
-                                    let mut date = value.parse().unwrap_or_default();
-                                    if DatePickerButton::new(&mut date)
-                                        .id_salt(&ui.next_auto_id().value().to_string())
-                                        .ui(ui)
-                                        .changed()
-                                    {
-                                        *value = date.to_string();
-                                    }
-                                }
-                                IDENTIFIER => {
-                                    let mut number = value.parse::<u64>().unwrap_or(0);
-                                    if DragValue::new(&mut number).speed(0.1).ui(ui).changed() {
-                                        *value = number.to_string();
-                                    }
-                                }
-                                DESCRIPTION => {
-                                    // Многострочный редактор для описания
-                                    let response = TextEdit::multiline(value)
-                                        .desired_width(f32::INFINITY)
-                                        .ui(ui);
-                                    if response.lost_focus() || response.clicked_elsewhere() {
-                                        *value = value.trim().to_owned();
-                                    }
-                                }
-                                _ => {
-                                    // Стандартный однострочный редактор для всех остальных
-                                    let response = TextEdit::singleline(value)
-                                        .desired_width(f32::INFINITY)
-                                        .ui(ui);
-                                    if response.lost_focus() || response.clicked_elsewhere() {
-                                        *value = value.trim().to_owned();
-                                    }
-                                }
+                // Переключатель наличия значения
+                let checked = value.is_some();
+                let response = ui.selectable_label(checked, EQUAL);
+                if response.clicked() {
+                    *value = if checked { None } else { Some(String::new()) };
+                }
+
+                // Поле значения со специальными эдиторами
+                if let Some(value) = value {
+                    match &**name {
+                        DATE => {
+                            let mut date = value.parse().unwrap_or_default();
+                            if DatePickerButton::new(&mut date)
+                                .id_salt(&ui.next_auto_id().value().to_string())
+                                .ui(ui)
+                                .changed()
+                            {
+                                *value = date.to_string();
                             }
-                        } else {
-                            ui.disable();
-                            let mut text = String::new();
-                            TextEdit::singleline(&mut text)
-                                .desired_width(f32::INFINITY)
-                                .ui(ui);
                         }
-                    });
-                });
+                        // VERSION | IDENTIFIER => {
+                        IDENTIFIER => {
+                            let mut number = value.parse::<u64>().unwrap_or(0);
+                            if DragValue::new(&mut number).speed(0.1).ui(ui).changed() {
+                                *value = number.to_string();
+                            }
+                        }
+                        DESCRIPTION => {
+                            // Многострочный редактор для описания
+                            let response = TextEdit::multiline(value)
+                                .desired_width(available_width)
+                                .ui(ui);
+                            if response.lost_focus() || response.clicked_elsewhere() {
+                                *value = value.trim().to_owned();
+                            }
+                        }
+                        _ => {
+                            // Стандартный однострочный редактор для всех остальных
+                            let response = TextEdit::singleline(value)
+                                .desired_width(available_width)
+                                .ui(ui);
+                            if response.lost_focus() || response.clicked_elsewhere() {
+                                *value = value.trim().to_owned();
+                            }
+                        }
+                    }
+                } else {
+                    ui.disable();
+                    let mut text = String::new();
+                    TextEdit::singleline(&mut text)
+                        .desired_width(available_width)
+                        .ui(ui);
+                }
+                // // Поле значения
+                // if let Some(value) = value {
+                //     let response = TextEdit::singleline(value)
+                //         .desired_width(available_width)
+                //         .ui(ui);
+                //     if response.lost_focus() || response.clicked_elsewhere() {
+                //         *value = value.trim().to_owned();
+                //     }
+                // } else {
+                //     ui.disable();
+                //     let mut text = String::new();
+                //     TextEdit::singleline(&mut text)
+                //         .desired_width(available_width)
+                //         .ui(ui);
+                // }
             });
 
-        // Обработка отложенных действий (удаление и сортировка)
-        // Выполняем после отрисовки таблицы, чтобы избежать проблем с заимствованием (borrow checker)
-
-        if !to_remove.is_empty() {
-            let mut i = 0;
-            self.parameters.retain_mut(|_| {
-                let keep = !to_remove.contains(&i);
-                i += 1;
-                keep
-            });
-        }
-
-        if sort_clicked {
-            self.parameters.retain_mut(|parameter| {
-                !parameter.name.is_empty()
-                    || parameter
-                        .value
-                        .as_ref()
-                        .is_some_and(|value| !value.is_empty())
-            });
-            self.parameters
-                .filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
-        }
+            keep
+        });
 
         // Кнопка добавления
         if ui.button(PLUS).clicked() {

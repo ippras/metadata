@@ -1,11 +1,10 @@
 use egui_l10n::{ContextExt, Localization, langid};
 use jiff::civil::date;
 use metadata::{
-    Parameter, Parameters, Version,
-    r#const::{AUTHOR, DATE, DESCRIPTION, NAME, VERSION},
-    egui::readable::Readable,
+    Parameters, Version,
+    r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION},
+    egui::readable::{READABLE_RULES, Readable},
     l10n,
-    rule::{Name, Rule, Value},
 };
 // egui::writable::Writable,
 
@@ -47,23 +46,17 @@ impl DemoApp {
             .set_language_identifier(langid!("en"));
 
         let mut parameters = Parameters::new();
+        parameters.push(IDENTIFIER, Some(1954));
         parameters.push(NAME, Some("VIR-2699"));
         parameters.push(DATE, Some(date(2026, 09, 11)));
         parameters.push(DATE, Some(date(2026, 09, 09)));
         parameters.push(DESCRIPTION, Some("Cat. No. 2699, Прогресс, Россия"));
-        parameters.push(AUTHOR, Some(GVK));
         parameters.push(AUTHOR, Some(RAS));
+        parameters.push(AUTHOR, Some(GVK));
         parameters.push(VERSION, Some(Version(1, 2, 3)));
         parameters.push(VERSION, Some(Version(0, 1, 2)));
         parameters.push("CustomName", Some("CustomValue"));
-        parameters.filter_and_sort(&[
-            Rule::new(Name::exact(AUTHOR), Value::All),
-            Rule::new(Name::exact(DATE), Value::All),
-            Rule::new(Name::exact(DESCRIPTION), Value::All),
-            Rule::new(Name::exact(NAME), Value::All),
-            Rule::new(Name::exact(VERSION), Value::All),
-            Rule::new(Name::All, Value::All),
-        ]);
+        parameters.filter_and_sort(&*READABLE_RULES);
         Self { parameters }
     }
 }

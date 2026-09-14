@@ -1,14 +1,7 @@
-use crate::{
-    Parameters,
-    r#const::{AUTHORS, DATES, DESCRIPTION, EM_DASH, NAME, PARAMETERS, PREFIX, VERSIONS},
-    egui::MetadataOptions,
-};
-use const_format::formatcp;
-use egui::{Grid, Label, Response, Ui, Widget};
-use egui_l10n::ContextExt;
-use itertools::Itertools;
+use crate::{Parameters, r#const::EM_DASH};
+use egui::{Grid, Response, Ui, Widget};
 
-/// Readable metadata widget
+/// Readable parameters widget
 pub struct Readable<'a> {
     parameters: &'a Parameters,
 }
