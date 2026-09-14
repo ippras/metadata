@@ -14,7 +14,7 @@ egui_extras = { version = "0.36.2", features = [
     "serde",
 ], optional = true }
 itertools = "0.15.0"
-jiff = { version = "0.2.35", features = ["serde"] }
+jiff = { version = "0.2.37", features = ["serde"] }
 polars = { version = "=0.52.0", default-features = false, features = [
     "serde",
 ], optional = true }

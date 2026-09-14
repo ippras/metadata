@@ -1,9 +1,13 @@
+use egui_l10n::{ContextExt, Localization, langid};
 use jiff::civil::date;
 use metadata::{
     Parameter, Parameters, Version,
     r#const::{AUTHOR, DATE, DESCRIPTION, NAME, VERSION},
-    egui::writable::Writable,
+    egui::readable::Readable,
+    l10n,
+    rule::{Name, Rule, Value},
 };
+// egui::writable::Writable,
 
 const GVK: &str = "Giorgi Vladimirovich Kazakov";
 const RAS: &str = "Roman Alexandrovich Sidorov";
@@ -34,12 +38,13 @@ impl DemoApp {
         let mut fonts = egui::FontDefinitions::default();
         egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
         creation_context.egui_ctx.set_fonts(fonts);
-
-        // return Default::default();
-        // creation_context
-        //     .storage
-        //     .and_then(|storage| eframe::get_value(storage, eframe::APP_KEY))
-        //     .unwrap_or_default()
+        creation_context.egui_ctx.set_localization(
+            langid!("en"),
+            Localization::new(langid!("en")).with_sources(l10n::EN),
+        );
+        creation_context
+            .egui_ctx
+            .set_language_identifier(langid!("en"));
 
         let mut parameters = Parameters::new();
         parameters.push(NAME, Some("VIR-2699"));
@@ -48,27 +53,19 @@ impl DemoApp {
         parameters.push(DESCRIPTION, Some("Cat. No. 2699, Прогресс, Россия"));
         parameters.push(AUTHOR, Some(GVK));
         parameters.push(AUTHOR, Some(RAS));
-        parameters.push(VERSION, Some("1.2.3"));
-        parameters.push(VERSION, Some("0.1.2"));
+        parameters.push(VERSION, Some(Version(1, 2, 3)));
+        parameters.push(VERSION, Some(Version(0, 1, 2)));
         parameters.push("CustomName", Some("CustomValue"));
-        parameters.sort();
+        parameters.filter_and_sort(&[
+            Rule::new(Name::exact(AUTHOR), Value::All),
+            Rule::new(Name::exact(DATE), Value::All),
+            Rule::new(Name::exact(DESCRIPTION), Value::All),
+            Rule::new(Name::exact(NAME), Value::All),
+            Rule::new(Name::exact(VERSION), Value::All),
+            Rule::new(Name::All, Value::All),
+        ]);
         Self { parameters }
     }
-
-    // fn default() -> Self {
-    //     // Создадим пару параметров для наглядности при старте
-    //     let mut parameters = Parameters::default();
-    //     parameters.push(Parameter {
-    //         name: "API_KEY".to_string(),
-    //         value: Some("12345-abcde".to_string()),
-    //     });
-    //     parameters.push(Parameter {
-    //         name: "DEBUG_MODE".to_string(),
-    //         value: None,
-    //     });
-
-    //     Self { parameters }
-    // }
 }
 
 impl eframe::App for DemoApp {
@@ -78,8 +75,10 @@ impl eframe::App for DemoApp {
             ui.separator();
 
             // Отрисовываем ваш виджет
-            let mut writable = Writable::new(&mut self.parameters);
-            writable.show(ui);
+            let readable = Readable::new(&mut self.parameters);
+            readable.show(ui);
+            // let mut writable = Writable::new(&mut self.parameters);
+            // writable.show(ui);
 
             ui.separator();
 

@@ -1,9 +1,10 @@
 pub mod readable;
-pub mod writable;
+// pub mod writable;
 
 use crate::{
     Metadata,
-    egui::{readable::Readable, writable::Writable},
+    egui::readable::Readable,
+    // egui::{readable::Readable, writable::Writable},
 };
 use egui::{Response, Ui};
 use std::borrow::{Borrow, BorrowMut};
@@ -93,7 +94,7 @@ impl MetadataWidget<&Metadata> {
 impl<T: Borrow<Metadata>> MetadataWidget<T> {
     /// Readable
     fn readable(&self, ui: &mut Ui) -> Response {
-        Readable::new(self.metadata.borrow(), self.options).show(ui)
+        Readable::new(self.metadata.borrow()).show(ui)
     }
 }
 

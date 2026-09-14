@@ -2,32 +2,16 @@
 #![enable(implicit_some)]
 [
     (
-        name: "Author",
-        value: "Giorgi Vladimirovich Kazakov",
-    ),
-    (
-        name: "Author",
-        value: "Roman Alexandrovich Sidorov",
-    ),
-    (
-        name: "CustomName",
-        value: "CustomValue",
-    ),
-    (
         name: "Date",
         value: "2026-09-09",
     ),
     (
-        name: "Date",
-        value: "2026-09-11",
-    ),
-    (
-        name: "Description",
-        value: "Cat. No. 2699, Прогресс, Россия",
-    ),
-    (
         name: "Name",
         value: "VIR-2699",
+    ),
+    (
+        name: "CustomName",
+        value: "CustomValue",
     ),
     (
         name: "Version",

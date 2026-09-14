@@ -1,18 +1,10 @@
-pub mod l10n {
-    use egui_l10n::ftl;
-
-    pub const EN: &[&str] = &[ftl!("en/main.ftl")];
-
-    pub const RU: &[&str] = &[ftl!("ru/main.ftl")];
-}
-
 pub mod r#const;
-pub mod format;
+pub mod l10n;
 pub mod rule;
 // pub mod join;
 
 #[cfg(feature = "egui")]
-// pub mod egui;
+pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
@@ -199,6 +191,15 @@ impl DerefMut for Parameters {
     }
 }
 
+impl Display for Parameters {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        for parameter in &self.0 {
+            write!(f, "{{{parameter}}}")?;
+        }
+        Ok(())
+    }
+}
+
 /// Parameter
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Parameter {
@@ -263,7 +264,7 @@ const RAS: &str = "Roman Alexandrovich Sidorov";
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{r#const::*, format::ParameterFormat, rule::Value};
+    use crate::{r#const::*, rule::Value};
     use jiff::civil::date;
 
     #[test]
@@ -300,32 +301,12 @@ mod test {
             // 4. В самом конце `VERSION`
             Rule::new(Name::exact(VERSION), Value::All),
         ]);
-        println!("parameters: {parameters:#?}");
-        // parameters.clone().filter_and_sort(&[
-        //     Rule::name(DATE),
-        //     Rule::name(NAME),
-        //     Rule::name(ID),
-        //     Rule::name(AUTHOR),
-        //     Rule::name(DESCRIPTION),
-        //     Rule::name(VERSION),
-        //     Rule::All,
-        // ]);
-        // let mut parameters_format = parameters.format();
-        // parameters_format.push(ParameterFormat::new(Name::exact(DATE), Value::Last));
-        // parameters_format.push_left(ParameterFormat::new(Filter::Name(DATE), Value::Last));
-        // parameters_format.push_right(ParameterFormat::all(Filter::Not(&[
-        //     AUTHOR,
-        //     DATE,
-        //     DESCRIPTION,
-        //     NAME,
-        //     VERSION,
-        // ])));
-        // parameters_format.push_right(ParameterFormat::all(Filter::Name(VERSION)));
-        // println!(r#"parameters_format: "{parameters_format}""#);
+        println!("debug: {parameters:#?}");
+        println!("display: {parameters}");
 
-        // let contents = ron::ser::to_string_pretty(&parameters, PRETTY_CONFIG.clone()).unwrap();
-        // std::fs::write("path.ron", &contents).unwrap();
-        // println!("contents: {contents}");
+        let contents = ron::ser::to_string_pretty(&parameters, PRETTY_CONFIG.clone()).unwrap();
+        std::fs::write("path.ron", &contents).unwrap();
+        println!("contents: {contents}");
     }
 
     // #[test]
