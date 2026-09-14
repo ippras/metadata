@@ -1,4 +1,4 @@
-use crate::{Metadata, Parameter, Version};
+use crate::{Metadata, Parameter, Version, r#const::AUTHOR};
 use itertools::{Either, Itertools as _};
 use jiff::civil::Date;
 
@@ -15,7 +15,7 @@ pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
 }
 
 pub fn authors<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<String> {
-    iter.flat_map(|meta| &meta.authors)
+    iter.flat_map(|parameters| parameters.filter(AUTHOR).map(|parameter| parameter.value))
         .unique()
         .sorted()
         .cloned()

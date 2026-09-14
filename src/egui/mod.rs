@@ -1,3 +1,6 @@
+pub mod readable;
+pub mod writable;
+
 use crate::{
     Metadata,
     egui::{readable::Readable, writable::Writable},
@@ -72,13 +75,13 @@ impl MetadataWidget<&mut Metadata> {
         Self { writable, ..self }
     }
 
-    pub fn show(mut self, ui: &mut Ui) {
-        if self.writable {
-            self.writable(ui);
-        } else {
-            self.readable(ui);
-        }
-    }
+    // pub fn show(mut self, ui: &mut Ui) {
+    //     if self.writable {
+    //         self.writable(ui);
+    //     } else {
+    //         self.readable(ui);
+    //     }
+    // }
 }
 
 impl MetadataWidget<&Metadata> {
@@ -94,12 +97,12 @@ impl<T: Borrow<Metadata>> MetadataWidget<T> {
     }
 }
 
-impl<T: BorrowMut<Metadata>> MetadataWidget<T> {
-    /// Writable
-    fn writable(&mut self, ui: &mut Ui) {
-        Writable::new(self.metadata.borrow_mut(), self.options).show(ui);
-    }
-}
+// impl<T: BorrowMut<Metadata>> MetadataWidget<T> {
+//     /// Writable
+//     fn writable(&mut self, ui: &mut Ui) {
+//         Writable::new(self.metadata.borrow_mut(), self.options).show(ui);
+//     }
+// }
 
 /// Metadata options
 #[derive(Clone, Copy, Debug, Default)]
@@ -131,7 +134,10 @@ impl MetadataOptions {
     }
 
     fn with_date(self, date: bool) -> Self {
-        Self { dates: date, ..self }
+        Self {
+            dates: date,
+            ..self
+        }
     }
 
     fn with_description(self, description: bool) -> Self {
@@ -150,9 +156,9 @@ impl MetadataOptions {
     }
 
     fn with_version(self, version: bool) -> Self {
-        Self { versions: version, ..self }
+        Self {
+            versions: version,
+            ..self
+        }
     }
 }
-
-mod readable;
-mod writable;
