@@ -1,6 +1,26 @@
 use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
 use std::sync::LazyLock;
 
+pub static DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION: LazyLock<[Rule; 4]> =
+    LazyLock::new(|| {
+        [
+            Rule::new(Name::exact(DATE), Value::Last),
+            Rule::new(Name::exact(NAME), Value::All),
+            Rule::new(
+                Name::and([
+                    Name::All,
+                    Name::not(Name::or(vec![
+                        Name::exact(AUTHOR),
+                        Name::exact(DESCRIPTION),
+                        Name::exact(VERSION),
+                    ])),
+                ]),
+                Value::All,
+            ),
+            Rule::new(Name::exact(VERSION), Value::All),
+        ]
+    });
+
 pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
     [
         Rule::new(Name::exact(AUTHOR), Value::All),
