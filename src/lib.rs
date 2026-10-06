@@ -9,7 +9,7 @@ pub mod egui;
 pub mod polars;
 
 use crate::rule::{
-    DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION, Name, Rule, Value,
+    NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION, Name, Rule, Value,
 };
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
@@ -178,7 +178,7 @@ impl Parameters {
     pub fn format(&self) -> impl Display {
         let mut parameters = self.clone();
         parameters
-            .filter_and_sort(&*DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION);
+            .filter_and_sort(&*NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION);
         from_fn(move |f| write!(f, "{parameters}"))
     }
 }
