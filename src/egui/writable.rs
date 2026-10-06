@@ -116,7 +116,7 @@ impl Writable<'_> {
                                 DESCRIPTION => {
                                     // Многострочный редактор для описания
                                     let response = TextEdit::multiline(value)
-                                        .desired_width(f32::INFINITY)
+                                        // .desired_width(f32::INFINITY)
                                         .ui(ui);
                                     if response.lost_focus() || response.clicked_elsewhere() {
                                         *value = value.trim().to_owned();
@@ -125,7 +125,7 @@ impl Writable<'_> {
                                 _ => {
                                     // Стандартный однострочный редактор для всех остальных
                                     let response = TextEdit::singleline(value)
-                                        .desired_width(f32::INFINITY)
+                                        // .desired_width(f32::INFINITY)
                                         .ui(ui);
                                     if response.lost_focus() || response.clicked_elsewhere() {
                                         *value = value.trim().to_owned();
@@ -136,7 +136,7 @@ impl Writable<'_> {
                             ui.disable();
                             let mut text = String::new();
                             TextEdit::singleline(&mut text)
-                                .desired_width(f32::INFINITY)
+                                // .desired_width(f32::INFINITY)
                                 .ui(ui);
                         }
                     });

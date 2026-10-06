@@ -8,9 +8,8 @@ pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
-use crate::{
-    r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, VERSIONS},
-    rule::{DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION, Name, Rule, Value},
+use crate::rule::{
+    DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION, Name, Rule, Value,
 };
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
@@ -204,6 +203,24 @@ impl Display for Parameters {
             write!(f, "{{{parameter}}}")?;
         }
         Ok(())
+    }
+}
+
+impl<'a> IntoIterator for &'a Parameters {
+    type Item = &'a Parameter;
+    type IntoIter = std::slice::Iter<'a, Parameter>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl IntoIterator for Parameters {
+    type Item = Parameter;
+    type IntoIter = std::vec::IntoIter<Parameter>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 

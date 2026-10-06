@@ -1,34 +1,29 @@
-use crate::{
-    Parameter, Parameters, Version,
-    r#const::{AUTHOR, DATE},
-};
+use crate::{Metadata, Parameter, Version, r#const::AUTHOR};
 use itertools::{Either, Itertools as _};
 use jiff::civil::Date;
 
-pub fn join<'a>(iter: impl Iterator<Item = &'a Parameters> + Clone) -> Parameters {
-    let mut parameters = Parameters::default();
+pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
+    let mut meta = Metadata::default();
 
-    parameters.authors = unique_sorted_authors(iter.clone());
-    parameters.dates = unique_sorted_dates(iter.clone());
-    parameters.name = name(iter.clone(), false);
-    parameters.parameters = parameters(iter.clone());
-    parameters.versions = versions(iter.clone(), true);
+    meta.authors = authors(iter.clone());
+    meta.dates = dates(iter.clone());
+    meta.name = name(iter.clone(), false);
+    meta.parameters = parameters(iter.clone());
+    meta.versions = versions(iter.clone(), true);
 
-    parameters
+    meta
 }
 
-pub fn unique_sorted_authors<'a>(iter: impl Iterator<Item = &'a Parameters>) -> Vec<Parameter> {
-    iter.flatten()
-        .filter(|parameter| parameter.name == AUTHOR)
+pub fn authors<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<String> {
+    iter.flat_map(|parameters| parameters.filter(AUTHOR).map(|parameter| parameter.value))
         .unique()
         .sorted()
         .cloned()
         .collect()
 }
 
-pub fn unique_sorted_dates<'a>(iter: impl Iterator<Item = &'a Parameters>) -> Vec<Parameter> {
-    iter.flatten()
-        .filter(|parameter| parameter.name == DATE)
+pub fn dates<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<Date> {
+    iter.flat_map(|meta| &meta.dates)
         .unique()
         .sorted()
         .cloned()
@@ -44,7 +39,7 @@ pub fn unique_sorted_dates<'a>(iter: impl Iterator<Item = &'a Parameters>) -> Ve
 //     longest_common_prefix(descriptions).to_owned()
 // }
 
-pub fn name<'a>(mut iter: impl Iterator<Item = &'a Parameters>, first_plus: bool) -> String {
+pub fn name<'a>(mut iter: impl Iterator<Item = &'a Metadata>, first_plus: bool) -> String {
     if first_plus {
         let name = iter.next().map(|meta| &*meta.name).unwrap_or_default();
         let count = iter.count();
@@ -54,7 +49,7 @@ pub fn name<'a>(mut iter: impl Iterator<Item = &'a Parameters>, first_plus: bool
     }
 }
 
-pub fn parameters<'a>(iter: impl Iterator<Item = &'a Parameters>) -> Vec<Parameter> {
+pub fn parameters<'a>(iter: impl Iterator<Item = &'a Metadata>) -> Vec<Parameter> {
     iter.flat_map(|meta| &meta.parameters)
         .unique()
         .sorted()
@@ -62,7 +57,7 @@ pub fn parameters<'a>(iter: impl Iterator<Item = &'a Parameters>) -> Vec<Paramet
         .collect()
 }
 
-pub fn versions<'a>(iter: impl Iterator<Item = &'a Parameters>, unique: bool) -> Vec<Version> {
+pub fn versions<'a>(iter: impl Iterator<Item = &'a Metadata>, unique: bool) -> Vec<Version> {
     let iter = iter.flat_map(|meta| &meta.versions);
     let iter = if unique {
         Either::Right(iter.unique())
