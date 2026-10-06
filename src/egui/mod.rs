@@ -14,21 +14,11 @@ pub const SEMICOLON: &str = ";";
 /// Metadata widget
 pub struct MetadataWidget<T> {
     metadata: T,
-    writable: bool,
 }
 
 impl<T> MetadataWidget<T> {
     pub fn new(metadata: T) -> Self {
-        Self {
-            metadata,
-            writable: false,
-        }
-    }
-}
-
-impl MetadataWidget<&mut Metadata> {
-    pub fn with_writable(self, writable: bool) -> Self {
-        Self { writable, ..self }
+        Self { metadata }
     }
 }
 
@@ -38,16 +28,22 @@ impl MetadataWidget<&Metadata> {
     }
 }
 
+impl MetadataWidget<&mut Metadata> {
+    pub fn show(mut self, ui: &mut Ui) {
+        self.writable(ui);
+    }
+}
+
 impl<T: Borrow<Metadata>> MetadataWidget<T> {
     /// Readable
-    fn readable(&self, ui: &mut Ui) -> Response {
+    pub fn readable(&self, ui: &mut Ui) -> Response {
         Readable::new(self.metadata.borrow()).show(ui)
     }
 }
 
 impl<T: BorrowMut<Metadata>> MetadataWidget<T> {
     /// Writable
-    fn writable(&mut self, ui: &mut Ui) {
+    pub fn writable(&mut self, ui: &mut Ui) {
         Writable::new(self.metadata.borrow_mut()).show(ui);
     }
 }
