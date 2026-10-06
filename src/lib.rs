@@ -17,7 +17,7 @@ use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashSet},
-    fmt::{Debug, Display, Formatter},
+    fmt::{Debug, Display, Formatter, from_fn},
     ops::{Deref, DerefMut},
     slice::{Iter, IterMut},
     sync::LazyLock,
@@ -174,6 +174,12 @@ impl Parameters {
             .into_iter()
             .map(|(_, parameter)| parameter)
             .collect();
+    }
+
+    pub fn format(&self, rules: &[Rule]) -> impl Display {
+        let mut parameters = self.clone();
+        parameters.filter_and_sort(rules);
+        from_fn(move |f| write!(f, "{parameters}"))
     }
 }
 
