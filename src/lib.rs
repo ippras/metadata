@@ -10,7 +10,7 @@ pub mod polars;
 
 use crate::{
     r#const::{AUTHORS, DATES, DESCRIPTION, NAME, PARAMETERS, VERSIONS},
-    rule::{Name, Rule, Value},
+    rule::{DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION, Name, Rule, Value},
 };
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
@@ -176,9 +176,10 @@ impl Parameters {
             .collect();
     }
 
-    pub fn format(&self, rules: &[Rule]) -> impl Display {
+    pub fn format(&self) -> impl Display {
         let mut parameters = self.clone();
-        parameters.filter_and_sort(rules);
+        parameters
+            .filter_and_sort(&*DATE_LAST_AND_NAME_AND_NOT_AUTHOR_DESCRIPTION_VERSION_AND_VERSION);
         from_fn(move |f| write!(f, "{parameters}"))
     }
 }
