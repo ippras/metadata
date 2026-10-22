@@ -1,6 +1,16 @@
 use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
 use std::sync::LazyLock;
 
+pub static UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_ALL_DATES_AND_ALL_VERSIONS: LazyLock<[Rule; 4]> =
+    LazyLock::new(|| {
+        [
+            Rule::new(Name::exact(NAME), Value::Unique),
+            Rule::new(Name::exact(IDENTIFIER), Value::Unique),
+            Rule::new(Name::exact(DATE), Value::All),
+            Rule::new(Name::exact(VERSION), Value::All),
+        ]
+    });
+
 pub static NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION: LazyLock<[Rule; 4]> =
     LazyLock::new(|| {
         [
@@ -87,4 +97,5 @@ pub enum Value {
     All,
     First,
     Last,
+    Unique,
 }

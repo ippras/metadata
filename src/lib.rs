@@ -1,16 +1,14 @@
 pub mod r#const;
+pub mod join;
 pub mod l10n;
 pub mod rule;
-// pub mod join;
 
 #[cfg(feature = "egui")]
 pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
-use crate::rule::{
-    NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION, Name, Rule, Value,
-};
+use crate::rule::{NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION, Name, Rule, Value};
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
@@ -79,13 +77,10 @@ pub static PRETTY_CONFIG: LazyLock<PrettyConfig> = LazyLock::new(|| {
 // }
 
 /// Metadata
-pub type Metadata = Parameters;
-
-/// Parameters
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Parameters(Vec<Parameter>);
+pub struct Metadata(Vec<Parameter>);
 
-impl Parameters {
+impl Metadata {
     pub fn new() -> Self {
         Self(Vec::new())
     }
@@ -119,19 +114,31 @@ impl Parameters {
             })
             .collect();
 
-        // Применяем политики First и Last
+        // Применяем политики First, Last и Unique
         let mut keep = vec![true; rank_value_parameters.len()];
         let mut seen_first = HashSet::new();
         let mut seen_last = HashSet::new();
-        // Обрабатываем First (идем с начала)
+        let mut seen_unique = HashSet::new();
+
+        // Обрабатываем First и Unique (идем с начала)
         for (index, (_, value, parameter)) in rank_value_parameters.iter().enumerate() {
-            if let Value::First = value {
-                // Если имя уже есть в HashSet, значит это не первый элемент -> удаляем
-                if !seen_first.insert(&parameter.name) {
-                    keep[index] = false;
+            match value {
+                Value::First => {
+                    // Если имя уже есть в HashSet, значит это не первый элемент -> удаляем
+                    if !seen_first.insert(&parameter.name) {
+                        keep[index] = false;
+                    }
                 }
+                Value::Unique => {
+                    // Если пара (имя, значение) уже есть в HashSet, значит это дубликат -> удаляем
+                    if !seen_unique.insert((&parameter.name, &parameter.value)) {
+                        keep[index] = false;
+                    }
+                }
+                _ => {}
             }
         }
+
         // Обрабатываем Last (идем с конца)
         for (index, (_, value, parameter)) in rank_value_parameters.iter().enumerate().rev() {
             if let Value::Last = value {
@@ -143,7 +150,7 @@ impl Parameters {
         }
 
         // Фильтруем по значению
-        // Оставляем только те параметры, которые не были отсеяны политиками First/Last
+        // Оставляем только те параметры, которые не были отсеяны политиками First/Last/Unique
         let mut rank_parameters: Vec<_> = rank_value_parameters
             .into_iter()
             .enumerate()
@@ -177,13 +184,12 @@ impl Parameters {
 
     pub fn format(&self) -> impl Display {
         let mut parameters = self.clone();
-        parameters
-            .filter_and_sort(&*NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION);
+        parameters.filter_and_sort(&*NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION);
         from_fn(move |f| write!(f, "{parameters}"))
     }
 }
 
-impl Deref for Parameters {
+impl Deref for Metadata {
     type Target = Vec<Parameter>;
 
     fn deref(&self) -> &Self::Target {
@@ -191,13 +197,13 @@ impl Deref for Parameters {
     }
 }
 
-impl DerefMut for Parameters {
+impl DerefMut for Metadata {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl Display for Parameters {
+impl Display for Metadata {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         for parameter in &self.0 {
             write!(f, "{{{parameter}}}")?;
@@ -206,7 +212,7 @@ impl Display for Parameters {
     }
 }
 
-impl<'a> IntoIterator for &'a Parameters {
+impl<'a> IntoIterator for &'a Metadata {
     type Item = &'a Parameter;
     type IntoIter = std::slice::Iter<'a, Parameter>;
 
@@ -215,7 +221,7 @@ impl<'a> IntoIterator for &'a Parameters {
     }
 }
 
-impl IntoIterator for Parameters {
+impl IntoIterator for Metadata {
     type Item = Parameter;
     type IntoIter = std::vec::IntoIter<Parameter>;
 
@@ -293,7 +299,7 @@ mod test {
 
     #[test]
     fn test() {
-        let mut parameters = Parameters::new();
+        let mut parameters = Metadata::new();
         parameters.push_name_value(NAME, Some("VIR-2699"));
         parameters.push_name_value(DATE, Some(date(2026, 09, 11)));
         parameters.push_name_value(DATE, Some(date(2026, 09, 09)));

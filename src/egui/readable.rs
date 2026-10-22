@@ -1,13 +1,13 @@
-use crate::{Parameters, r#const::EM_DASH};
+use crate::{Metadata, r#const::EM_DASH};
 use egui::{Grid, Response, Ui, Widget};
 
 /// Readable parameters widget
 pub struct Readable<'a> {
-    parameters: &'a Parameters,
+    parameters: &'a Metadata,
 }
 
 impl<'a> Readable<'a> {
-    pub fn new(parameters: &'a Parameters) -> Self {
+    pub fn new(parameters: &'a Metadata) -> Self {
         Self { parameters }
     }
 }

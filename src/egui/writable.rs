@@ -1,7 +1,7 @@
 // TODO: TextEdit::singleline lost_focus: https://github.com/emilk/egui/issues/2142
 
 use crate::{
-    Parameter, Parameters,
+    Parameter, Metadata,
     r#const::{DATE, DESCRIPTION, IDENTIFIER, VERSION},
     egui::EQUAL,
     rule::SPECIAL_ALPHABETICAL_RULES,
@@ -18,11 +18,11 @@ use egui_phosphor::regular::{MINUS, PLUS, SORT_ASCENDING};
 
 /// Writable parameters widget
 pub struct Writable<'a> {
-    parameters: &'a mut Parameters,
+    parameters: &'a mut Metadata,
 }
 
 impl<'a> Writable<'a> {
-    pub fn new(parameters: &'a mut Parameters) -> Self {
+    pub fn new(parameters: &'a mut Metadata) -> Self {
         Self { parameters }
     }
 }

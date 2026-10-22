@@ -1,7 +1,7 @@
 use egui_l10n::{ContextExt, Localization, langid};
 use jiff::civil::date;
 use metadata::{
-    Parameters, Version,
+    Metadata, Version,
     r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION},
     egui::writable::Writable,
     l10n,
@@ -21,7 +21,7 @@ fn main() -> eframe::Result<()> {
 
 // Наше тестовое приложение, которое хранит состояние
 struct DemoApp {
-    parameters: Parameters,
+    parameters: Metadata,
 }
 
 impl DemoApp {
@@ -38,7 +38,7 @@ impl DemoApp {
             .egui_ctx
             .set_language_identifier(langid!("en"));
 
-        let mut parameters = Parameters::new();
+        let mut parameters = Metadata::new();
         parameters.push_name_value(IDENTIFIER, Some(1954));
         parameters.push_name_value(NAME, Some("VIR-2699"));
         parameters.push_name_value(DATE, Some(date(2026, 09, 11)));
