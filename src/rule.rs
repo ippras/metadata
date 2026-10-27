@@ -2,7 +2,7 @@ use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
-pub static UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_ALL_DATES_AND_ALL_VERSIONS: LazyLock<[Rule; 4]> =
+pub static UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_DATES_AND_VERSIONS: LazyLock<[Rule; 4]> =
     LazyLock::new(|| {
         [
             Rule::builder()
@@ -24,7 +24,7 @@ pub static UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_ALL_DATES_AND_ALL_VERSIONS: L
         ]
     });
 
-pub static NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION: LazyLock<[Rule; 4]> =
+pub static NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 4]> =
     LazyLock::new(|| {
         [
             Rule::builder()
@@ -77,7 +77,7 @@ pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
 });
 
 /// Order
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Order {
     #[default]
     Ascending,
@@ -85,7 +85,7 @@ pub enum Order {
 }
 
 /// Rule
-#[derive(TypedBuilder)]
+#[derive(Clone, Eq, PartialEq, TypedBuilder)]
 pub struct Rule {
     pub name: Name,
     pub value: Value,
@@ -94,7 +94,7 @@ pub struct Rule {
 }
 
 /// Name
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Name {
     /// Точное совпадение имени параметра
     Exact(String),
@@ -140,7 +140,7 @@ impl Name {
 }
 
 /// Value
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Value {
     All,
     First,

@@ -8,7 +8,7 @@ pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
-use crate::rule::{NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION, Name, Rule, Value};
+use crate::rule::{NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS, Name, Order, Rule, Value};
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
@@ -99,39 +99,37 @@ impl Metadata {
 
         // Фильтруем по имени
         // Находим первое подходящее правило для каждого параметра
-        let rank_value_parameters: Vec<_> = parameters
+        let rank_value_sort_parameters: Vec<_> = parameters
             .into_iter()
             .filter_map(|parameter| {
-                // Ищем подходящее правило
-                let (rank, value) = rules.iter().enumerate().find_map(|(rank, rule)| {
+                // Ищем подходящее правило и захватываем его политику сортировки
+                let (rank, value, sort) = rules.iter().enumerate().find_map(|(rank, rule)| {
                     if rule.name.matches(&parameter.name) {
-                        Some((rank, rule.value))
+                        Some((rank, rule.value, rule.sort))
                     } else {
                         None
                     }
                 })?;
-                Some((rank, value, parameter))
+                Some((rank, value, sort, parameter))
             })
             .collect();
 
         // Применяем политики First, Last и Unique
-        let mut keep = vec![true; rank_value_parameters.len()];
-        let mut seen_first = HashSet::new();
-        let mut seen_last = HashSet::new();
-        let mut seen_unique = HashSet::new();
+        let mut keep = vec![true; rank_value_sort_parameters.len()];
+        let mut first = HashSet::new();
+        let mut last = HashSet::new();
+        let mut unique = HashSet::new();
 
         // Обрабатываем First и Unique (идем с начала)
-        for (index, (_, value, parameter)) in rank_value_parameters.iter().enumerate() {
+        for (index, (_, value, _, parameter)) in rank_value_sort_parameters.iter().enumerate() {
             match value {
                 Value::First => {
-                    // Если имя уже есть в HashSet, значит это не первый элемент -> удаляем
-                    if !seen_first.insert(&parameter.name) {
+                    if !first.insert(&parameter.name) {
                         keep[index] = false;
                     }
                 }
                 Value::Unique => {
-                    // Если пара (имя, значение) уже есть в HashSet, значит это дубликат -> удаляем
-                    if !seen_unique.insert((&parameter.name, &parameter.value)) {
+                    if !unique.insert((&parameter.name, &parameter.value)) {
                         keep[index] = false;
                     }
                 }
@@ -140,23 +138,22 @@ impl Metadata {
         }
 
         // Обрабатываем Last (идем с конца)
-        for (index, (_, value, parameter)) in rank_value_parameters.iter().enumerate().rev() {
+        for (index, (_, value, _, parameter)) in rank_value_sort_parameters.iter().enumerate().rev()
+        {
             if let Value::Last = value {
-                // Если имя уже встречалось с конца, значит это не последний элемент -> удаляем
-                if !seen_last.insert(&parameter.name) {
+                if !last.insert(&parameter.name) {
                     keep[index] = false;
                 }
             }
         }
 
         // Фильтруем по значению
-        // Оставляем только те параметры, которые не были отсеяны политиками First/Last/Unique
-        let mut rank_parameters: Vec<_> = rank_value_parameters
+        let mut rank_parameters: Vec<_> = rank_value_sort_parameters
             .into_iter()
             .enumerate()
-            .filter_map(|(index, (rank, _, parameter))| {
+            .filter_map(|(index, (rank, _, sort, parameter))| {
                 if keep[index] {
-                    Some((rank, parameter))
+                    Some((rank, sort, parameter))
                 } else {
                     None
                 }
@@ -164,27 +161,56 @@ impl Metadata {
             .collect();
 
         // Сортируем
+        // rank_parameters.sort_by_cached_key(|(rank, sort, parameter)| {
+        //     (*rank, *sort, *parameter)
+        //     // left_rank
+        //     //     .cmp(right_rank)
+        //     //     // Если параметры попали под одно и то же правило (ранги равны)
+        //     //     .then_with(|| {
+        //     //         // Поскольку left_rank == right_rank, то и left_sort == right_sort
+        //     //         match left_sort {
+        //     //             Some(Order::Ascending) => left_parameter
+        //     //                 .name
+        //     //                 .cmp(&right_parameter.name)
+        //     //                 .then_with(|| left_parameter.value.cmp(&right_parameter.value)),
+        //     //             // Возвращаем Equal, чтобы стабильная сортировка сохранила исходный порядок
+        //     //             None => std::cmp::Ordering::Equal,
+        //     //         }
+        //     //     })
+        // });
         rank_parameters.sort_by(
-            |(left_rank, left_parameter), (right_rank, right_parameter)| {
+            |(left_rank, left_sort, left_parameter), (right_rank, _right_sort, right_parameter)| {
                 left_rank
                     .cmp(right_rank)
-                    // Если попали под одно и то же правило — сортируем по алфавиту
-                    .then_with(|| left_parameter.name.cmp(&right_parameter.name))
-                    // Если имена одинаковые — по значению
-                    .then_with(|| left_parameter.value.cmp(&right_parameter.value))
+                    // Если параметры попали под одно и то же правило (ранги равны)
+                    .then_with(|| {
+                        // Поскольку left_rank == right_rank, то и left_sort == right_sort
+                        match left_sort {
+                            Some(Order::Ascending) => left_parameter
+                                .name
+                                .cmp(&right_parameter.name)
+                                .then_with(|| left_parameter.value.cmp(&right_parameter.value)),
+                            Some(Order::Descending) => right_parameter
+                                .name
+                                .cmp(&left_parameter.name)
+                                .then_with(|| right_parameter.value.cmp(&left_parameter.value)),
+                            // Возвращаем Equal, чтобы стабильная сортировка сохранила исходный порядок
+                            None => std::cmp::Ordering::Equal,
+                        }
+                    })
             },
         );
 
         // Убираем ранг и возвращаем обратно в self
         self.0 = rank_parameters
             .into_iter()
-            .map(|(_, parameter)| parameter)
+            .map(|(_, _, parameter)| parameter)
             .collect();
     }
 
     pub fn format(&self) -> impl Display {
         let mut parameters = self.clone();
-        parameters.filter_and_sort(&*NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION);
+        parameters.filter_and_sort(&*NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS);
         from_fn(move |f| write!(f, "{parameters}"))
     }
 }

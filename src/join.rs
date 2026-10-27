@@ -1,15 +1,9 @@
-use crate::{
-    Metadata, Parameter, Version,
-    r#const::{AUTHOR, DATE},
-    rule::UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_ALL_DATES_AND_ALL_VERSIONS,
-};
-use itertools::{Either, Itertools as _};
-use jiff::civil::Date;
+use crate::{Metadata, rule::UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_DATES_AND_VERSIONS};
 
 pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
     let mut metadata = Metadata(parameters);
-    metadata.filter_and_sort(&*UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_ALL_DATES_AND_ALL_VERSIONS);
+    metadata.filter_and_sort(&*UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_DATES_AND_VERSIONS);
     metadata
 }
 
