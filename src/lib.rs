@@ -313,23 +313,32 @@ mod test {
 
         parameters.filter_and_sort(&[
             // 1. Сначала `DATE`
-            Rule::new(Name::exact(DATE), Value::Last),
+            Rule::builder()
+                .name(Name::exact(DATE))
+                .value(Value::Last)
+                .build(),
             // 2. Затем `NAME`
-            Rule::new(Name::or([Name::exact(NAME)]), Value::All),
+            Rule::builder()
+                .name(Name::or([Name::exact(NAME)]))
+                .value(Value::All)
+                .build(),
             // 3. Затем всё остальное, КРОМЕ `AUTHOR`, `DESCRIPTION`, `VERSION`
-            Rule::new(
-                Name::and([
+            Rule::builder()
+                .name(Name::and([
                     Name::All,
                     Name::not(Name::or(vec![
                         Name::exact(AUTHOR),
                         Name::exact(DESCRIPTION),
                         Name::exact(VERSION),
                     ])),
-                ]),
-                Value::All,
-            ),
+                ]))
+                .value(Value::All)
+                .build(),
             // 4. В самом конце `VERSION`
-            Rule::new(Name::exact(VERSION), Value::All),
+            Rule::builder()
+                .name(Name::exact(VERSION))
+                .value(Value::All)
+                .build(),
         ]);
         println!("debug: {parameters:#?}");
         println!("display: {parameters}");

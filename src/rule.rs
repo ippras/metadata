@@ -1,48 +1,96 @@
 use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
 use std::sync::LazyLock;
+use typed_builder::TypedBuilder;
 
 pub static UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_ALL_DATES_AND_ALL_VERSIONS: LazyLock<[Rule; 4]> =
     LazyLock::new(|| {
         [
-            Rule::new(Name::exact(NAME), Value::Unique),
-            Rule::new(Name::exact(IDENTIFIER), Value::Unique),
-            Rule::new(Name::exact(DATE), Value::All),
-            Rule::new(Name::exact(VERSION), Value::All),
+            Rule::builder()
+                .name(Name::exact(NAME))
+                .value(Value::Unique)
+                .build(),
+            Rule::builder()
+                .name(Name::exact(IDENTIFIER))
+                .value(Value::Unique)
+                .build(),
+            Rule::builder()
+                .name(Name::exact(DATE))
+                .value(Value::All)
+                .build(),
+            Rule::builder()
+                .name(Name::exact(VERSION))
+                .value(Value::All)
+                .build(),
         ]
     });
 
 pub static NAME_AND_IDENTIFIER_AND_DATE_LAST_AND_VERSION: LazyLock<[Rule; 4]> =
     LazyLock::new(|| {
         [
-            Rule::new(Name::exact(NAME), Value::All),
-            Rule::new(Name::exact(IDENTIFIER), Value::All),
-            Rule::new(Name::exact(DATE), Value::Last),
-            Rule::new(Name::exact(VERSION), Value::All),
+            Rule::builder()
+                .name(Name::exact(NAME))
+                .value(Value::All)
+                .build(),
+            Rule::builder()
+                .name(Name::exact(IDENTIFIER))
+                .value(Value::All)
+                .build(),
+            Rule::builder()
+                .name(Name::exact(DATE))
+                .value(Value::Last)
+                .build(),
+            Rule::builder()
+                .name(Name::exact(VERSION))
+                .value(Value::All)
+                .build(),
         ]
     });
 
 pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
     [
-        Rule::new(Name::exact(AUTHOR), Value::All),
-        Rule::new(Name::exact(DATE), Value::All),
-        Rule::new(Name::exact(DESCRIPTION), Value::All),
-        Rule::new(Name::exact(IDENTIFIER), Value::All),
-        Rule::new(Name::exact(NAME), Value::All),
-        Rule::new(Name::exact(VERSION), Value::All),
-        Rule::new(Name::All, Value::All),
+        Rule::builder()
+            .name(Name::exact(AUTHOR))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(DATE))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(DESCRIPTION))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(IDENTIFIER))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(NAME))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(VERSION))
+            .value(Value::All)
+            .build(),
+        Rule::builder().name(Name::All).value(Value::All).build(),
     ]
 });
 
+/// Order
+#[derive(Clone, Copy, Debug, Default)]
+pub enum Order {
+    #[default]
+    Ascending,
+    Descending,
+}
+
 /// Rule
+#[derive(TypedBuilder)]
 pub struct Rule {
     pub name: Name,
     pub value: Value,
-}
-
-impl Rule {
-    pub fn new(name: Name, value: Value) -> Self {
-        Self { name, value }
-    }
+    #[builder(default, setter(strip_option))]
+    pub sort: Option<Order>,
 }
 
 /// Name
@@ -80,12 +128,12 @@ impl Name {
 
 impl Name {
     /// Проверяет, подходит ли имя параметра под данное выражение
-    pub fn matches(&self, name: &str) -> bool {
+    pub fn matches(&self, target: &str) -> bool {
         match self {
-            Name::Exact(n) => name == n,
-            Name::Not(expr) => !expr.matches(name),
-            Name::Or(exprs) => exprs.iter().any(|expr| expr.matches(name)),
-            Name::And(exprs) => exprs.iter().all(|expr| expr.matches(name)),
+            Name::Exact(name) => target == name,
+            Name::Not(name) => !name.matches(target),
+            Name::Or(names) => names.iter().any(|name| name.matches(target)),
+            Name::And(names) => names.iter().all(|name| name.matches(target)),
             Name::All => true,
         }
     }
