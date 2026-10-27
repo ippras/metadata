@@ -51,28 +51,38 @@ pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
         Rule::builder()
             .name(Name::exact(AUTHOR))
             .value(Value::All)
+            .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(DATE))
             .value(Value::All)
+            .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(DESCRIPTION))
             .value(Value::All)
+            .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(IDENTIFIER))
             .value(Value::All)
+            .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(NAME))
             .value(Value::All)
+            .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(VERSION))
             .value(Value::All)
+            .sort(Order::Ascending)
             .build(),
-        Rule::builder().name(Name::All).value(Value::All).build(),
+        Rule::builder()
+            .name(Name::All)
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
     ]
 });
 
