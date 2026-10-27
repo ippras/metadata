@@ -8,7 +8,7 @@ pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
-use crate::rule::{NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS, Name, Order, Rule, Value};
+use crate::rule::{KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS, Name, Order, Rule, Value};
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
@@ -210,7 +210,7 @@ impl Metadata {
 
     pub fn format(&self) -> impl Display {
         let mut parameters = self.clone();
-        parameters.filter_and_sort(&*NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS);
+        parameters.filter_and_sort(&*KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS);
         from_fn(move |f| write!(f, "{parameters}"))
     }
 }

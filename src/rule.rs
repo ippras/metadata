@@ -1,32 +1,45 @@
-use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
+use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, KIND, NAME, VERSION};
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
-pub static UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_DATES_AND_VERSIONS: LazyLock<[Rule; 4]> =
-    LazyLock::new(|| {
-        [
-            Rule::builder()
-                .name(Name::exact(NAME))
-                .value(Value::Unique)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(IDENTIFIER))
-                .value(Value::Unique)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(DATE))
-                .value(Value::All)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(VERSION))
-                .value(Value::All)
-                .build(),
-        ]
-    });
+pub static UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
+    [Rule; 6],
+> = LazyLock::new(|| {
+    [
+        Rule::builder()
+            .name(Name::exact(AUTHOR))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(DATE))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(IDENTIFIER))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(KIND))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(NAME))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(VERSION))
+            .value(Value::All)
+            .build(),
+    ]
+});
 
-pub static NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 4]> =
+pub static KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 5]> =
     LazyLock::new(|| {
         [
+            Rule::builder()
+                .name(Name::exact(KIND))
+                .value(Value::All)
+                .build(),
             Rule::builder()
                 .name(Name::exact(NAME))
                 .value(Value::All)
