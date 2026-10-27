@@ -59,7 +59,7 @@ pub static KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<
         ]
     });
 
-pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
+pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
     [
         Rule::builder()
             .name(Name::exact(AUTHOR))
@@ -78,6 +78,11 @@ pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 7]> = LazyLock::new(|| {
             .build(),
         Rule::builder()
             .name(Name::exact(IDENTIFIER))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(KIND))
             .value(Value::All)
             .sort(Order::Ascending)
             .build(),
