@@ -33,6 +33,37 @@ pub static UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KIN
     ]
 });
 
+pub static UNIQUE_AUTHORS_AND_ALL_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
+    [Rule; 6],
+> = LazyLock::new(|| {
+    [
+        Rule::builder()
+            .name(Name::exact(AUTHOR))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(DATE))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(IDENTIFIER))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(KIND))
+            .value(Value::Unique)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(NAME))
+            .value(Value::All)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(VERSION))
+            .value(Value::All)
+            .build(),
+    ]
+});
+
 pub static KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 5]> =
     LazyLock::new(|| {
         [
