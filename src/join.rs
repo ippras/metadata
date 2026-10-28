@@ -12,8 +12,10 @@ use typed_builder::TypedBuilder;
 /// Join options
 #[derive(Clone, Copy, Debug, Default, TypedBuilder)]
 pub struct JoinOptions {
-    pub unique_names: bool,
+    #[builder(default)]
     pub unique_kinds: bool,
+    #[builder(default)]
+    pub unique_names: bool,
 }
 
 pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
