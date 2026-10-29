@@ -94,6 +94,12 @@ impl Metadata {
         });
     }
 
+    pub fn find_name_value(&self, name: &str) -> Option<&String> {
+        self.0
+            .iter()
+            .find_map(|parameter| (parameter.name == name).then_some(&parameter.value))
+    }
+
     /// Оставляет только те параметры, которые попали хотя бы под одно правило,
     /// фильтрует дубликаты согласно `Rule::value` и выстраивает их в порядке правил.
     pub fn filter_and_sort(&mut self, rules: &[Rule]) {
