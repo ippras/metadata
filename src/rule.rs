@@ -4,9 +4,79 @@ use crate::r#const::{
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
+pub static ALL_AUTHORS: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(AUTHOR))
+        .value(Value::All)
+        .build()
+});
+
+pub static ALL_DATES: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(DATE))
+        .value(Value::All)
+        .build()
+});
+
+pub static ALL_IDENTIFIERS: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(IDENTIFIER))
+        .value(Value::All)
+        .build()
+});
+
+pub static ALL_NAMES: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(NAME))
+        .value(Value::All)
+        .build()
+});
+
+pub static ALL_STEREOSPECIFIC_NUMBERS: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(STEREOSPECIFIC_NUMBERS))
+        .value(Value::All)
+        .build()
+});
+
+pub static LAST_DATES: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(DATE))
+        .value(Value::Last)
+        .build()
+});
+
 pub static UNIQUE_AUTHORS: LazyLock<Rule> = LazyLock::new(|| {
     Rule::builder()
         .name(Name::exact(AUTHOR))
+        .value(Value::Unique)
+        .build()
+});
+
+pub static UNIQUE_DATES: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(DATE))
+        .value(Value::Unique)
+        .build()
+});
+
+pub static UNIQUE_IDENTIFIERS: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(IDENTIFIER))
+        .value(Value::Unique)
+        .build()
+});
+
+pub static UNIQUE_NAMES: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(NAME))
+        .value(Value::Unique)
+        .build()
+});
+
+pub static UNIQUE_STEREOSPECIFIC_NUMBERS: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(STEREOSPECIFIC_NUMBERS))
         .value(Value::Unique)
         .build()
 });
@@ -165,19 +235,6 @@ pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
             .build(),
     ]
 });
-
-/// Rules
-#[derive(Clone, Copy, Debug, Default, TypedBuilder)]
-pub struct Rules {
-    #[builder(default)]
-    pub authors: Option<Value>,
-    #[builder(default)]
-    pub dates: Option<Value>,
-    #[builder(default)]
-    pub kinds: Option<Value>,
-    #[builder(default)]
-    pub names: Option<Value>,
-}
 
 /// Order
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
