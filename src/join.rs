@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use crate::{
     Metadata,
     r#const::{AUTHOR, DATE, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION},
@@ -25,9 +27,9 @@ pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
     metadata
 }
 
-pub fn join_with_rules<'a>(
+pub fn join_with_rules<'a, T: Borrow<Rule>>(
     iter: impl Iterator<Item = &'a Metadata> + Clone,
-    rules: &[Rule],
+    rules: impl AsRef<[T]>,
 ) -> Metadata {
     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
     let mut metadata = Metadata(parameters);

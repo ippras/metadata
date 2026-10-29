@@ -114,8 +114,8 @@ impl Metadata {
 
     /// Оставляет только те параметры, которые попали хотя бы под одно правило,
     /// фильтрует дубликаты согласно `Rule::value` и выстраивает их в порядке правил.
-    pub fn filter_and_sort<R: Borrow<Rule>>(&mut self, rules: impl AsRef<[R]>) {
-        let rules: &[R] = rules.as_ref();
+    pub fn filter_and_sort<T: Borrow<Rule>>(&mut self, rules: impl AsRef<[T]>) {
+        let rules = rules.as_ref();
         let parameters = std::mem::take(&mut self.0);
 
         // Фильтруем по имени
@@ -125,7 +125,7 @@ impl Metadata {
             .filter_map(|parameter| {
                 // Ищем подходящее правило и захватываем его политику сортировки
                 let (rank, value, sort) = rules.iter().enumerate().find_map(|(rank, rule)| {
-                    let rule: &Rule = rule.borrow();
+                    let rule = rule.borrow();
                     if rule.name.matches(&parameter.name) {
                         Some((rank, rule.value, rule.sort))
                     } else {
