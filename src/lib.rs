@@ -94,10 +94,10 @@ impl Metadata {
         });
     }
 
-    pub fn find_name_value(&self, name: &str) -> Option<&String> {
+    pub fn find_name_value(&self, name: &str) -> Option<&str> {
         self.0
             .iter()
-            .find_map(|parameter| (parameter.name == name).then_some(&parameter.value))
+            .find_map(|parameter| (parameter.name == name).then_some(&*parameter.value))
     }
 
     /// Оставляет только те параметры, которые попали хотя бы под одно правило,
