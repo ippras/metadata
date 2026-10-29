@@ -166,6 +166,19 @@ pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
     ]
 });
 
+/// Rules
+#[derive(Clone, Copy, Debug, Default, TypedBuilder)]
+pub struct Rules {
+    #[builder(default)]
+    pub authors: Option<Value>,
+    #[builder(default)]
+    pub dates: Option<Value>,
+    #[builder(default)]
+    pub kinds: Option<Value>,
+    #[builder(default)]
+    pub names: Option<Value>,
+}
+
 /// Order
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Order {

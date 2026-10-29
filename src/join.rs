@@ -1,6 +1,6 @@
 use crate::{
     Metadata,
-    r#const::{AUTHOR, DATE, IDENTIFIER, STEREOSPECIFIC_NUMBERS, NAME, VERSION},
+    r#const::{AUTHOR, DATE, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION},
     rule::{
         Name, Rule,
         UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS,
@@ -22,6 +22,16 @@ pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
     let mut metadata = Metadata(parameters);
     metadata.filter_and_sort(&*UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS);
+    metadata
+}
+
+pub fn join_with_rules<'a>(
+    iter: impl Iterator<Item = &'a Metadata> + Clone,
+    rules: &[Rule],
+) -> Metadata {
+    let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
+    let mut metadata = Metadata(parameters);
+    metadata.filter_and_sort(&rules);
     metadata
 }
 
