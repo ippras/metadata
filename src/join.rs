@@ -1,6 +1,6 @@
 use crate::{
     Metadata,
-    r#const::{AUTHOR, DATE, IDENTIFIER, KIND, NAME, VERSION},
+    r#const::{AUTHOR, DATE, IDENTIFIER, STEREOSPECIFIC_NUMBERS, NAME, VERSION},
     rule::{
         Name, Rule,
         UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS,
@@ -45,7 +45,7 @@ pub fn join_with_options<'a>(
             .value(Value::Unique)
             .build(),
         Rule::builder()
-            .name(Name::exact(KIND))
+            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
             .value(options.kinds)
             .build(),
         Rule::builder()

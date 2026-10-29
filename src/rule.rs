@@ -1,4 +1,6 @@
-use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, KIND, NAME, VERSION};
+use crate::r#const::{
+    AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION,
+};
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
@@ -26,7 +28,7 @@ pub static UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KIN
             .value(Value::Unique)
             .build(),
         Rule::builder()
-            .name(Name::exact(KIND))
+            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
             .value(Value::Unique)
             .build(),
         Rule::builder()
@@ -57,7 +59,7 @@ pub static UNIQUE_AUTHORS_AND_ALL_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_
             .value(Value::Unique)
             .build(),
         Rule::builder()
-            .name(Name::exact(KIND))
+            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
             .value(Value::Unique)
             .build(),
         Rule::builder()
@@ -75,7 +77,7 @@ pub static KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<
     LazyLock::new(|| {
         [
             Rule::builder()
-                .name(Name::exact(KIND))
+                .name(Name::exact(STEREOSPECIFIC_NUMBERS))
                 .value(Value::All)
                 .build(),
             Rule::builder()
@@ -120,12 +122,12 @@ pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
-            .name(Name::exact(KIND))
+            .name(Name::exact(NAME))
             .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
-            .name(Name::exact(NAME))
+            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
             .value(Value::All)
             .sort(Order::Ascending)
             .build(),
