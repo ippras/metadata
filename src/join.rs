@@ -31,7 +31,7 @@ pub fn join_with_rules<'a>(
 ) -> Metadata {
     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
     let mut metadata = Metadata(parameters);
-    metadata.filter_and_sort(&rules);
+    metadata.filter_and_sort(rules);
     metadata
 }
 
