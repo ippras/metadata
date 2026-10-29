@@ -13,9 +13,9 @@ use typed_builder::TypedBuilder;
 #[derive(Clone, Copy, Debug, Default, TypedBuilder)]
 pub struct JoinOptions {
     #[builder(default)]
-    pub unique_kinds: bool,
+    pub kinds: Value,
     #[builder(default)]
-    pub unique_names: bool,
+    pub names: Value,
 }
 
 pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
@@ -46,19 +46,11 @@ pub fn join_with_options<'a>(
             .build(),
         Rule::builder()
             .name(Name::exact(KIND))
-            .value(if options.unique_kinds {
-                Value::Unique
-            } else {
-                Value::All
-            })
+            .value(options.kinds)
             .build(),
         Rule::builder()
             .name(Name::exact(NAME))
-            .value(if options.unique_names {
-                Value::Unique
-            } else {
-                Value::All
-            })
+            .value(options.names)
             .build(),
         Rule::builder()
             .name(Name::exact(VERSION))

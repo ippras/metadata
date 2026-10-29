@@ -2,6 +2,13 @@ use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, KIND, NAME, VERSION}
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
+pub static UNIQUE_AUTHORS: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(AUTHOR))
+        .value(Value::Unique)
+        .build()
+});
+
 pub static UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
     [Rule; 6],
 > = LazyLock::new(|| {
@@ -199,8 +206,9 @@ impl Name {
 }
 
 /// Value
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Value {
+    #[default]
     All,
     First,
     Last,
