@@ -18,11 +18,7 @@ impl Readable<'_> {
             .show(ui, |ui| {
                 for parameter in self.parameters.iter() {
                     ui.label(&parameter.name);
-                    if let Some(value) = &parameter.value {
-                        ui.label(value);
-                    } else {
-                        ui.label(EM_DASH);
-                    }
+                    ui.label(&parameter.value);
                     ui.end_row();
                 }
                 // if self.options.name {

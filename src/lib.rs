@@ -8,7 +8,9 @@ pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
-use crate::rule::{KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS, Name, Order, Rule, Value};
+use crate::rule::{
+    KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS, Name, Order, Rule, Value,
+};
 use jiff::civil::Date;
 use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
@@ -85,10 +87,10 @@ impl Metadata {
         Self(Vec::new())
     }
 
-    pub fn push_name_value(&mut self, name: impl Into<String>, value: Option<impl ToString>) {
+    pub fn push_name_value(&mut self, name: impl Into<String>, value: impl ToString) {
         self.0.push(Parameter {
             name: name.into(),
-            value: value.map(|value| value.to_string()),
+            value: value.to_string(),
         });
     }
 
@@ -258,27 +260,23 @@ impl IntoIterator for Metadata {
 
 /// Parameter
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Parameter {
-    pub name: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub value: Option<String>,
+pub struct Parameter<T = String, U = String> {
+    pub name: T,
+    pub value: U,
 }
 
 impl Parameter {
     fn new() -> Self {
         Self {
             name: String::new(),
-            value: None,
+            value: String::new(),
         }
     }
 }
 
 impl Display for Parameter {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.name)?;
-        if let Some(value) = &self.value {
-            write!(f, "={value}")?;
-        }
+        write!(f, "{}={}", self.name, self.value)?;
         Ok(())
     }
 }
@@ -326,15 +324,15 @@ mod test {
     #[test]
     fn test() {
         let mut parameters = Metadata::new();
-        parameters.push_name_value(NAME, Some("VIR-2699"));
-        parameters.push_name_value(DATE, Some(date(2026, 09, 11)));
-        parameters.push_name_value(DATE, Some(date(2026, 09, 09)));
-        parameters.push_name_value(DESCRIPTION, Some("Cat. No. 2699, Прогресс, Россия"));
-        parameters.push_name_value(AUTHOR, Some(RAS));
-        parameters.push_name_value(AUTHOR, Some(GVK));
-        parameters.push_name_value(VERSION, Some(Version(1, 2, 3)));
-        parameters.push_name_value(VERSION, Some(Version(0, 1, 2)));
-        parameters.push_name_value("CustomName", Some("CustomValue"));
+        parameters.push_name_value(NAME, "VIR-2699");
+        parameters.push_name_value(DATE, date(2026, 09, 11));
+        parameters.push_name_value(DATE, date(2026, 09, 09));
+        parameters.push_name_value(DESCRIPTION, "Cat. No. 2699, Прогресс, Россия");
+        parameters.push_name_value(AUTHOR, RAS);
+        parameters.push_name_value(AUTHOR, GVK);
+        parameters.push_name_value(VERSION, Version(1, 2, 3));
+        parameters.push_name_value(VERSION, Version(0, 1, 2));
+        parameters.push_name_value("CustomName", "CustomValue");
         println!("parameters: {parameters:#?}");
 
         parameters.filter_and_sort(&[

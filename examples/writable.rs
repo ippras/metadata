@@ -39,16 +39,16 @@ impl DemoApp {
             .set_language_identifier(langid!("en"));
 
         let mut parameters = Metadata::new();
-        parameters.push_name_value(IDENTIFIER, Some(1954));
-        parameters.push_name_value(NAME, Some("VIR-2699"));
-        parameters.push_name_value(DATE, Some(date(2026, 09, 11)));
-        parameters.push_name_value(DATE, Some(date(2026, 09, 09)));
-        parameters.push_name_value(DESCRIPTION, Some("Cat. No. 2699, Прогресс, Россия"));
-        parameters.push_name_value(AUTHOR, Some(RAS));
-        parameters.push_name_value(AUTHOR, Some(GVK));
-        parameters.push_name_value(VERSION, Some(Version(1, 2, 3)));
-        parameters.push_name_value(VERSION, Some(Version(0, 1, 2)));
-        parameters.push_name_value("CustomName", Some("CustomValue"));
+        parameters.push_name_value(IDENTIFIER, 1954);
+        parameters.push_name_value(NAME, "VIR-2699");
+        parameters.push_name_value(DATE, date(2026, 09, 11));
+        parameters.push_name_value(DATE, date(2026, 09, 09));
+        parameters.push_name_value(DESCRIPTION, "Cat. No. 2699, Прогресс, Россия");
+        parameters.push_name_value(AUTHOR, RAS);
+        parameters.push_name_value(AUTHOR, GVK);
+        parameters.push_name_value(VERSION, Version(1, 2, 3));
+        parameters.push_name_value(VERSION, Version(0, 1, 2));
+        parameters.push_name_value("CustomName", "CustomValue");
         parameters.filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
         Self { parameters }
     }
