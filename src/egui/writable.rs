@@ -1,10 +1,12 @@
 // TODO: TextEdit::singleline lost_focus: https://github.com/emilk/egui/issues/2142
 
+use std::sync::LazyLock;
+
 use crate::{
     Metadata, Parameter,
-    r#const::{DATE, DESCRIPTION, IDENTIFIER, VERSION},
+    r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION},
     egui::EQUAL,
-    rule::SPECIAL_ALPHABETICAL_RULES,
+    rule::{Name, Order, Rule, Value},
 };
 use egui::{
     Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextStyle, TextWrapMode,
@@ -15,6 +17,51 @@ use egui::{
 use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
 use egui_l10n::ContextExt;
 use egui_phosphor::regular::{MINUS, PLUS, SORT_ASCENDING};
+
+pub static SORT_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
+    [
+        Rule::builder()
+            .name(Name::exact(AUTHOR))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(DATE))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(DESCRIPTION))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(IDENTIFIER))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(NAME))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(VERSION))
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::All)
+            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+    ]
+});
 
 /// Writable parameters widget
 pub struct Writable<'a> {
@@ -151,8 +198,7 @@ impl Writable<'_> {
         if sort_clicked {
             self.parameters
                 .retain_mut(|parameter| !parameter.name.is_empty() || !parameter.value.is_empty());
-            self.parameters
-                .filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
+            self.parameters.filter_and_sort(&*SORT_RULES);
         }
 
         // Кнопка добавления
