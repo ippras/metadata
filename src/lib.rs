@@ -100,6 +100,10 @@ impl Metadata {
             .find_map(|parameter| (parameter.name == name).then_some(&*parameter.value))
     }
 
+    // pub fn contains_name_value(&self, name: &str) -> bool {
+    //     self.find_name().is_some()
+    // }
+
     pub fn contains_name_value(&self, name: &str, value: &str) -> bool {
         self.0
             .iter()
@@ -226,6 +230,12 @@ impl Metadata {
     pub fn format(&self) -> impl Display {
         let mut parameters = self.clone();
         parameters.filter_and_sort(&*KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS);
+        from_fn(move |f| write!(f, "{parameters}"))
+    }
+
+    pub fn format_with(&self, rules: &[Rule]) -> impl Display {
+        let mut parameters = self.clone();
+        parameters.filter_and_sort(rules);
         from_fn(move |f| write!(f, "{parameters}"))
     }
 }
