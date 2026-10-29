@@ -94,10 +94,17 @@ impl Metadata {
         });
     }
 
-    pub fn find_name_value(&self, name: &str) -> Option<&str> {
+    pub fn find_name(&self, name: &str) -> Option<&str> {
         self.0
             .iter()
             .find_map(|parameter| (parameter.name == name).then_some(&*parameter.value))
+    }
+
+    pub fn contains_name_value(&self, name: &str, value: &str) -> bool {
+        self.0
+            .iter()
+            .find(|parameter| parameter.name == name && parameter.value == value)
+            .is_some()
     }
 
     /// Оставляет только те параметры, которые попали хотя бы под одно правило,
