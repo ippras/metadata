@@ -1,75 +1,33 @@
-use std::borrow::Borrow;
-
 use crate::{
     Metadata,
-    r#const::{AUTHOR, DATE, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION},
     rule::{
-        Name, Rule,
-        UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS,
-        Value,
+        ALL_DATES, ALL_VERSIONS, Rule, UNIQUE_AUTHORS, UNIQUE_IDENTIFIERS, UNIQUE_NAMES,
+        UNIQUE_STEREOSPECIFIC_NUMBERS,
     },
 };
-use typed_builder::TypedBuilder;
-
-/// Join options
-#[derive(Clone, Copy, Debug, Default, TypedBuilder)]
-pub struct JoinOptions {
-    #[builder(default)]
-    pub kinds: Value,
-    #[builder(default)]
-    pub names: Value,
-}
+use std::borrow::Borrow;
 
 pub fn join<'a>(iter: impl Iterator<Item = &'a Metadata> + Clone) -> Metadata {
     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
     let mut metadata = Metadata(parameters);
-    metadata.filter_and_sort(&*UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS);
+    metadata.filter_and_sort([
+        &*UNIQUE_AUTHORS,
+        &*ALL_DATES,
+        &*UNIQUE_IDENTIFIERS,
+        &*UNIQUE_STEREOSPECIFIC_NUMBERS,
+        &*UNIQUE_NAMES,
+        &*ALL_VERSIONS,
+    ]);
     metadata
 }
 
-pub fn join_with_rules<'a, T: Borrow<Rule>>(
+pub fn join_with<'a, T: Borrow<Rule>>(
     iter: impl Iterator<Item = &'a Metadata> + Clone,
     rules: impl AsRef<[T]>,
 ) -> Metadata {
     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
     let mut metadata = Metadata(parameters);
     metadata.filter_and_sort(rules);
-    metadata
-}
-
-pub fn join_with_options<'a>(
-    iter: impl Iterator<Item = &'a Metadata> + Clone,
-    options: JoinOptions,
-) -> Metadata {
-    let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
-    let mut metadata = Metadata(parameters);
-    let rules = [
-        Rule::builder()
-            .name(Name::exact(AUTHOR))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DATE))
-            .value(Value::All)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(IDENTIFIER))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-            .value(options.kinds)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(NAME))
-            .value(options.names)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(VERSION))
-            .value(Value::All)
-            .build(),
-    ];
-    metadata.filter_and_sort(&rules);
     metadata
 }
 

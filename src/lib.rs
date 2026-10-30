@@ -101,10 +101,6 @@ impl Metadata {
             .find_map(|parameter| (parameter.name == name).then_some(&*parameter.value))
     }
 
-    // pub fn contains_name_value(&self, name: &str) -> bool {
-    //     self.find_name().is_some()
-    // }
-
     pub fn contains_name_value(&self, name: &str, value: &str) -> bool {
         self.0
             .iter()
