@@ -95,6 +95,12 @@ impl Metadata {
         });
     }
 
+    pub fn filter_name(&self, name: &str) -> impl Iterator<Item = &str> {
+        self.0
+            .iter()
+            .filter_map(move |parameter| (parameter.name == name).then_some(&*parameter.value))
+    }
+
     pub fn find_name(&self, name: &str) -> Option<&str> {
         self.0
             .iter()
