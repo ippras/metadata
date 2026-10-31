@@ -18,5 +18,9 @@ pub const CULTIVATION_CONDITION: &str = "CultivationCondition";
 pub const LIPIDS: &str = "LIPIDS";
 pub const STEREOSPECIFIC_NUMBERS: &str = "StereospecificNumbers";
 
+pub const GENUS: &str = "Genus";
+pub const SPECIES: &str = "Species";
+pub const VARIETY: &str = "Variety";
+
 // pub const DEFAULT_DATE: &str = "1970-01-01";
 // pub const DEFAULT_VERSION: &str = "0.0.0";
