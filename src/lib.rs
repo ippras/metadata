@@ -28,7 +28,8 @@ pub const ID_SALT: &str = "Metadata";
 pub static PRETTY_CONFIG: LazyLock<PrettyConfig> = LazyLock::new(|| {
     PrettyConfig::new()
         .depth_limit(2)
-        .extensions(Extensions::UNWRAP_NEWTYPES | Extensions::IMPLICIT_SOME)
+        // .extensions(Extensions::UNWRAP_NEWTYPES | Extensions::IMPLICIT_SOME)
+        .extensions(Extensions::UNWRAP_NEWTYPES)
         .new_line("\n")
 });
 
