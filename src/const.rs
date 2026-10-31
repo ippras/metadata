@@ -15,7 +15,7 @@ pub const VERSION: &str = "Version";
 pub const VERSIONS: &str = "Versions";
 
 pub const CULTIVATION_CONDITION: &str = "CultivationCondition";
-pub const LIPIDS: &str = "LIPIDS";
+pub const LIPIDS: &str = "Lipids";
 pub const STEREOSPECIFIC_NUMBERS: &str = "StereospecificNumbers";
 
 pub const GENUS: &str = "Genus";
