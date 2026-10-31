@@ -238,7 +238,7 @@ impl Metadata {
         from_fn(move |f| write!(f, "{parameters}"))
     }
 
-    pub fn format_with(&self, rules: &[Rule]) -> impl Display {
+    pub fn format_with<T: Borrow<Rule>>(&self, rules: impl AsRef<[T]>) -> impl Display {
         let mut parameters = self.clone();
         parameters.filter_and_sort(rules);
         from_fn(move |f| write!(f, "{parameters}"))
