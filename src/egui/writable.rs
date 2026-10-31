@@ -20,46 +20,46 @@ use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
 use egui_l10n::ContextExt;
 use egui_phosphor::regular::{MINUS, PLUS, SORT_ASCENDING};
 
-pub static SORT_RULES: LazyLock<[Rule; 9]> = LazyLock::new(|| {
-    [
-        Rule::builder()
-            .name(Name::exact(AUTHOR))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DATE))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DESCRIPTION))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(IDENTIFIER))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(LIPIDS))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(NAME))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(VERSION))
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::All)
-            .sort(Order::Ascending)
-            .build(),
-    ]
-});
+// pub static SORT_RULES: LazyLock<[Rule; 9]> = LazyLock::new(|| {
+//     [
+//         Rule::builder()
+//             .name(Name::exact(AUTHOR))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(DATE))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(DESCRIPTION))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(IDENTIFIER))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(LIPIDS))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(NAME))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(STEREOSPECIFIC_NUMBERS))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(VERSION))
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//     ]
+// });
 
 /// Writable parameters widget
 pub struct Writable<'a> {
@@ -187,7 +187,7 @@ impl Writable<'_> {
         if sort_clicked {
             self.parameters
                 .retain_mut(|parameter| !parameter.name.is_empty() || !parameter.value.is_empty());
-            self.parameters.filter_and_sort(&*SORT_RULES);
+            self.parameters.filter_and_sort([&*ALL_ALL_ASCENDING]);
         }
 
         // Кнопка добавления
