@@ -4,6 +4,15 @@ use crate::r#const::{
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
+/// All
+pub static ALL_ALL_ASCENDING: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::All)
+        .value(Value::All)
+        .sort(Order::Ascending)
+        .build()
+});
+
 /// All authors
 pub static ALL_AUTHORS: LazyLock<Rule> = LazyLock::new(|| {
     Rule::builder()
@@ -267,6 +276,7 @@ pub enum Order {
 #[derive(Clone, Eq, PartialEq, TypedBuilder)]
 pub struct Rule {
     pub name: Name,
+    #[builder(default)]
     pub value: Value,
     #[builder(default, setter(strip_option))]
     pub sort: Option<Order>,

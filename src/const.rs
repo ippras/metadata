@@ -15,6 +15,7 @@ pub const VERSION: &str = "Version";
 pub const VERSIONS: &str = "Versions";
 
 pub const CULTIVATION_CONDITION: &str = "CultivationCondition";
+pub const LIPIDS: &str = "LIPIDS";
 pub const STEREOSPECIFIC_NUMBERS: &str = "StereospecificNumbers";
 
 // pub const DEFAULT_DATE: &str = "1970-01-01";

@@ -4,9 +4,11 @@ use std::sync::LazyLock;
 
 use crate::{
     Metadata, Parameter,
-    r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION},
+    r#const::{
+        AUTHOR, DATE, DESCRIPTION, IDENTIFIER, LIPIDS, NAME, STEREOSPECIFIC_NUMBERS, VERSION,
+    },
     egui::EQUAL,
-    rule::{Name, Order, Rule, Value},
+    rule::{ALL_ALL_ASCENDING, Name, Order, Rule, Value},
 };
 use egui::{
     Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextStyle, TextWrapMode,
@@ -18,46 +20,42 @@ use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
 use egui_l10n::ContextExt;
 use egui_phosphor::regular::{MINUS, PLUS, SORT_ASCENDING};
 
-pub static SORT_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
+pub static SORT_RULES: LazyLock<[Rule; 9]> = LazyLock::new(|| {
     [
         Rule::builder()
             .name(Name::exact(AUTHOR))
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(DATE))
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(DESCRIPTION))
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(IDENTIFIER))
-            .value(Value::All)
+            .sort(Order::Ascending)
+            .build(),
+        Rule::builder()
+            .name(Name::exact(LIPIDS))
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(NAME))
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::exact(VERSION))
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
         Rule::builder()
             .name(Name::All)
-            .value(Value::All)
             .sort(Order::Ascending)
             .build(),
     ]
@@ -66,11 +64,15 @@ pub static SORT_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
 /// Writable parameters widget
 pub struct Writable<'a> {
     parameters: &'a mut Metadata,
+    // sort: &'a [&'a Rule],
 }
 
 impl<'a> Writable<'a> {
     pub fn new(parameters: &'a mut Metadata) -> Self {
-        Self { parameters }
+        Self {
+            parameters,
+            // sort: &[&ALL_ALL_ASCENDING],
+        }
     }
 }
 
@@ -89,7 +91,6 @@ impl Writable<'_> {
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
             .column(Column::auto().resizable(false)) // Кнопка удаления (MINUS)
             .column(Column::auto_with_initial_suggestion(width)) // Поле ключа (Name)
-            .column(Column::auto().resizable(false)) // Переключатель наличия значения (EQUAL)
             .column(Column::remainder()) // Поле значения (Value)
             // .column(Column::auto_with_initial_suggestion(width)) // Поле значения (Value)
             .header(header_height, |mut header| {
@@ -102,9 +103,6 @@ impl Writable<'_> {
                 });
                 header.col(|ui| {
                     ui.heading("Name");
-                });
-                header.col(|_ui| {
-                    // Пустой заголовок для столбца с кнопкой EQUAL
                 });
                 header.col(|ui| {
                     ui.heading("Value");
@@ -130,15 +128,6 @@ impl Writable<'_> {
                         if response.lost_focus() || response.clicked_elsewhere() {
                             parameter.name = parameter.name.trim().to_owned();
                         }
-                    });
-
-                    // Столбец 3: Переключатель наличия значения
-                    row.col(|ui| {
-                        // let checked = parameter.value.is_some();
-                        // if ui.selectable_label(checked, EQUAL).clicked() {
-                        //     parameter.value = if checked { None } else { Some(String::new()) };
-                        // }
-                        ui.label(EQUAL);
                     });
 
                     // Столбец 4: Поле значения со специальными эдиторами
