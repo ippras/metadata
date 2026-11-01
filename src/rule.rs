@@ -45,14 +45,6 @@ pub static ALL_NAMES: LazyLock<Rule> = LazyLock::new(|| {
         .build()
 });
 
-/// All stereospecific numbers
-pub static ALL_STEREOSPECIFIC_NUMBERS: LazyLock<Rule> = LazyLock::new(|| {
-    Rule::builder()
-        .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-        .value(Value::All)
-        .build()
-});
-
 /// All versions
 pub static ALL_VERSIONS: LazyLock<Rule> = LazyLock::new(|| {
     Rule::builder()
@@ -61,8 +53,8 @@ pub static ALL_VERSIONS: LazyLock<Rule> = LazyLock::new(|| {
         .build()
 });
 
-/// Last dates
-pub static LAST_DATES: LazyLock<Rule> = LazyLock::new(|| {
+/// Last date
+pub static LAST_DATE: LazyLock<Rule> = LazyLock::new(|| {
     Rule::builder()
         .name(Name::exact(DATE))
         .value(Value::Last)
@@ -97,14 +89,6 @@ pub static UNIQUE_IDENTIFIERS: LazyLock<Rule> = LazyLock::new(|| {
 pub static UNIQUE_NAMES: LazyLock<Rule> = LazyLock::new(|| {
     Rule::builder()
         .name(Name::exact(NAME))
-        .value(Value::Unique)
-        .build()
-});
-
-/// Unique stereospecific numbers
-pub static UNIQUE_STEREOSPECIFIC_NUMBERS: LazyLock<Rule> = LazyLock::new(|| {
-    Rule::builder()
-        .name(Name::exact(STEREOSPECIFIC_NUMBERS))
         .value(Value::Unique)
         .build()
 });
