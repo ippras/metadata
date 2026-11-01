@@ -5,7 +5,7 @@ use metadata::{
     r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION},
     egui::writable::Writable,
     l10n,
-    rule::SPECIAL_ALPHABETICAL_RULES,
+    rule::ALL_ALL_ASCENDING,
 };
 
 const GVK: &str = "Giorgi Vladimirovich Kazakov";
@@ -49,7 +49,7 @@ impl DemoApp {
         parameters.push_name_value(VERSION, Version(1, 2, 3));
         parameters.push_name_value(VERSION, Version(0, 1, 2));
         parameters.push_name_value("CustomName", "CustomValue");
-        parameters.filter_and_sort(&*SPECIAL_ALPHABETICAL_RULES);
+        parameters.filter_and_sort([&*ALL_ALL_ASCENDING]);
         Self { parameters }
     }
 }

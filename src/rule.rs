@@ -1,6 +1,4 @@
-use crate::r#const::{
-    AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, STEREOSPECIFIC_NUMBERS, VERSION,
-};
+use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
@@ -93,160 +91,134 @@ pub static UNIQUE_NAMES: LazyLock<Rule> = LazyLock::new(|| {
         .build()
 });
 
-pub static UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
-    [Rule; 6],
-> = LazyLock::new(|| {
-    [
-        Rule::builder()
-            .name(Name::exact(AUTHOR))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DATE))
-            .value(Value::All)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(IDENTIFIER))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(NAME))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(VERSION))
-            .value(Value::All)
-            .build(),
-    ]
-});
+// pub static UNIQUE_AUTHORS_AND_UNIQUE_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
+//     [Rule; 6],
+// > = LazyLock::new(|| {
+//     [
+//         Rule::builder()
+//             .name(Name::exact(AUTHOR))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(DATE))
+//             .value(Value::All)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(IDENTIFIER))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(STEREOSPECIFIC_NUMBERS))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(NAME))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(VERSION))
+//             .value(Value::All)
+//             .build(),
+//     ]
+// });
 
-pub static UNIQUE_AUTHORS_AND_ALL_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
-    [Rule; 6],
-> = LazyLock::new(|| {
-    [
-        Rule::builder()
-            .name(Name::exact(AUTHOR))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DATE))
-            .value(Value::All)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(IDENTIFIER))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-            .value(Value::Unique)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(NAME))
-            .value(Value::All)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(VERSION))
-            .value(Value::All)
-            .build(),
-    ]
-});
+// pub static UNIQUE_AUTHORS_AND_ALL_NAMES_AND_UNIQUE_IDENTIFIERS_AND_UNIQUE_KINDS_AND_DATES_AND_VERSIONS: LazyLock<
+//     [Rule; 6],
+// > = LazyLock::new(|| {
+//     [
+//         Rule::builder()
+//             .name(Name::exact(AUTHOR))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(DATE))
+//             .value(Value::All)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(IDENTIFIER))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(STEREOSPECIFIC_NUMBERS))
+//             .value(Value::Unique)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(NAME))
+//             .value(Value::All)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(VERSION))
+//             .value(Value::All)
+//             .build(),
+//     ]
+// });
 
-pub static NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 4]> =
-    LazyLock::new(|| {
-        [
-            Rule::builder()
-                .name(Name::exact(NAME))
-                .value(Value::All)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(IDENTIFIER))
-                .value(Value::All)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(DATE))
-                .value(Value::Last)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(VERSION))
-                .value(Value::All)
-                .build(),
-        ]
-    });
+// pub static NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 4]> =
+//     LazyLock::new(|| {
+//         [
+//             Rule::builder()
+//                 .name(Name::exact(NAME))
+//                 .value(Value::All)
+//                 .build(),
+//             Rule::builder()
+//                 .name(Name::exact(IDENTIFIER))
+//                 .value(Value::All)
+//                 .build(),
+//             Rule::builder()
+//                 .name(Name::exact(DATE))
+//                 .value(Value::Last)
+//                 .build(),
+//             Rule::builder()
+//                 .name(Name::exact(VERSION))
+//                 .value(Value::All)
+//                 .build(),
+//         ]
+//     });
 
-pub static KINDS_AND_NAMES_AND_IDENTIFIERS_AND_LAST_DATE_AND_VERSIONS: LazyLock<[Rule; 5]> =
-    LazyLock::new(|| {
-        [
-            Rule::builder()
-                .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-                .value(Value::All)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(NAME))
-                .value(Value::All)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(IDENTIFIER))
-                .value(Value::All)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(DATE))
-                .value(Value::Last)
-                .build(),
-            Rule::builder()
-                .name(Name::exact(VERSION))
-                .value(Value::All)
-                .build(),
-        ]
-    });
-
-pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
-    [
-        Rule::builder()
-            .name(Name::exact(AUTHOR))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DATE))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(DESCRIPTION))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(IDENTIFIER))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(NAME))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::exact(VERSION))
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-        Rule::builder()
-            .name(Name::All)
-            .value(Value::All)
-            .sort(Order::Ascending)
-            .build(),
-    ]
-});
+// pub static SPECIAL_ALPHABETICAL_RULES: LazyLock<[Rule; 8]> = LazyLock::new(|| {
+//     [
+//         Rule::builder()
+//             .name(Name::exact(AUTHOR))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(DATE))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(DESCRIPTION))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(IDENTIFIER))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(NAME))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(STEREOSPECIFIC_NUMBERS))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::exact(VERSION))
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//         Rule::builder()
+//             .name(Name::All)
+//             .value(Value::All)
+//             .sort(Order::Ascending)
+//             .build(),
+//     ]
+// });
 
 /// Order
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]

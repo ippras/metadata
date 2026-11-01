@@ -4,11 +4,9 @@ use std::sync::LazyLock;
 
 use crate::{
     Metadata, Parameter,
-    r#const::{
-        AUTHOR, DATE, DESCRIPTION, IDENTIFIER, LIPIDS, NAME, STEREOSPECIFIC_NUMBERS, VERSION,
-    },
+    r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION},
     egui::EQUAL,
-    rule::{ALL_ALL_ASCENDING, Name, Order, Rule, Value},
+    rule::ALL_ALL_ASCENDING,
 };
 use egui::{
     Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextStyle, TextWrapMode,
