@@ -3,7 +3,7 @@ use jiff::civil::date;
 use metadata::{
     Metadata, Version,
     r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION},
-    egui::readable::Readable,
+    egui::ReadableMetadata,
     l10n,
     rule::ALL_ALL_ASCENDING,
 };
@@ -57,8 +57,7 @@ impl DemoApp {
 impl eframe::App for DemoApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ui, |ui| {
-            let readable = Readable::new(&mut self.parameters);
-            readable.show(ui);
+            ReadableMetadata::new(&mut self.parameters).show(ui);
             // let mut writable = Writable::new(&mut self.parameters);
             // writable.show(ui);
         });
