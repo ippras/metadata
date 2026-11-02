@@ -49,6 +49,34 @@ impl<'a> Writable<'a> {
         Self { metadata }
     }
 
+    fn show(&mut self, ui: &mut Ui) -> Response {
+        let InnerResponse {
+            inner: changed,
+            mut response,
+        } = ui.scope(|ui| {
+            let outcome = self.table(ui);
+            let mut changed = outcome.changed;
+
+            if let Some(index) = outcome.remove {
+                self.metadata.remove(index);
+                changed = true;
+            }
+            if outcome.sort {
+                clean_and_sort(self.metadata);
+                changed = true;
+            }
+            if ui.button(PLUS).clicked() {
+                self.metadata.push(Parameter::default());
+                changed = true;
+            }
+            changed
+        });
+        if changed {
+            response.mark_changed();
+        }
+        response
+    }
+
     /// Рисует таблицу. Структуру `Metadata` не меняет: удаление и сортировка
     /// выполняются после отрисовки, чтобы не менять список во время обхода.
     fn table(&mut self, ui: &mut Ui) -> Outcome {
@@ -102,31 +130,7 @@ impl<'a> Writable<'a> {
 
 impl Widget for Writable<'_> {
     fn ui(mut self, ui: &mut Ui) -> Response {
-        let InnerResponse {
-            inner: changed,
-            mut response,
-        } = ui.scope(|ui| {
-            let outcome = self.table(ui);
-            let mut changed = outcome.changed;
-
-            if let Some(index) = outcome.remove {
-                self.metadata.remove(index);
-                changed = true;
-            }
-            if outcome.sort {
-                clean_and_sort(self.metadata);
-                changed = true;
-            }
-            if ui.button(PLUS).clicked() {
-                self.metadata.push(Parameter::default());
-                changed = true;
-            }
-            changed
-        });
-        if changed {
-            response.mark_changed();
-        }
-        response
+        self.show(ui)
     }
 }
 
