@@ -1,4 +1,4 @@
-use crate::r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION};
+use crate::r#const::{AUTHOR, DATE, IDENTIFIER, NAME, VERSION};
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 

@@ -8,16 +8,14 @@ pub mod egui;
 #[cfg(feature = "polars")]
 pub mod polars;
 
-use crate::rule::{ALL_IDENTIFIERS, ALL_NAMES, ALL_VERSIONS, LAST_DATE, Name, Order, Rule, Value};
-use jiff::civil::Date;
+use crate::rule::{ALL_IDENTIFIERS, ALL_NAMES, ALL_VERSIONS, LAST_DATE, Order, Rule, Value};
 use ron::{extensions::Extensions, ser::PrettyConfig};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Borrow,
-    collections::{BTreeMap, HashSet},
+    collections::HashSet,
     fmt::{Debug, Display, Formatter, from_fn},
     ops::{Deref, DerefMut},
-    slice::{Iter, IterMut},
     sync::LazyLock,
 };
 
@@ -30,53 +28,6 @@ pub static PRETTY_CONFIG: LazyLock<PrettyConfig> = LazyLock::new(|| {
         .extensions(Extensions::UNWRAP_NEWTYPES)
         .new_line("\n")
 });
-
-// /// Metadata
-// #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-// pub struct Metadata {
-//     #[serde(default, skip_serializing_if = "String::is_empty")]
-//     pub name: String,
-//     #[serde(default, skip_serializing_if = "String::is_empty")]
-//     pub description: String,
-//     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-//     pub authors: Vec<String>,
-//     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-//     pub dates: Vec<Date>,
-//     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-//     pub versions: Vec<Version>,
-//     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-//     pub parameters: Vec<Parameter>,
-// }
-
-// impl TryFrom<Metadata> for BTreeMap<String, String> {
-//     type Error = ron::Error;
-
-//     fn try_from(value: Metadata) -> Result<Self, Self::Error> {
-//         let mut map = BTreeMap::new();
-//         if !value.name.is_empty() {
-//             map.insert(NAME.to_owned(), value.name);
-//         }
-//         if !value.description.is_empty() {
-//             map.insert(DESCRIPTION.to_owned(), value.description);
-//         }
-//         if !value.authors.is_empty() {
-//             map.insert(AUTHORS.to_owned(), ron::ser::to_string(&value.authors)?);
-//         }
-//         if !value.parameters.is_empty() {
-//             map.insert(
-//                 PARAMETERS.to_owned(),
-//                 ron::ser::to_string(&value.parameters)?,
-//             );
-//         }
-//         if !value.versions.is_empty() {
-//             map.insert(VERSIONS.to_owned(), ron::ser::to_string(&value.versions)?);
-//         }
-//         if !value.dates.is_empty() {
-//             map.insert(DATES.to_owned(), ron::ser::to_string(&value.dates)?);
-//         }
-//         Ok(map)
-//     }
-// }
 
 /// Metadata
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -337,120 +288,4 @@ impl Display for Version {
         write!(f, "{}", self.2)?;
         Ok(())
     }
-}
-
-const GVK: &str = "Giorgi Vladimirovich Kazakov";
-const RAS: &str = "Roman Alexandrovich Sidorov";
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::{r#const::*, rule::Value};
-    use jiff::civil::date;
-
-    #[test]
-    fn test() {
-        let mut parameters = Metadata::new();
-        parameters.push_name_value(NAME, "VIR-2699");
-        parameters.push_name_value(DATE, date(2026, 09, 11));
-        parameters.push_name_value(DATE, date(2026, 09, 09));
-        parameters.push_name_value(DESCRIPTION, "Cat. No. 2699, Прогресс, Россия");
-        parameters.push_name_value(AUTHOR, RAS);
-        parameters.push_name_value(AUTHOR, GVK);
-        parameters.push_name_value(VERSION, Version(1, 2, 3));
-        parameters.push_name_value(VERSION, Version(0, 1, 2));
-        parameters.push_name_value("CustomName", "CustomValue");
-        println!("parameters: {parameters:#?}");
-
-        parameters.filter_and_sort(&[
-            // 1. Сначала `DATE`
-            Rule::builder()
-                .name(Name::exact(DATE))
-                .value(Value::Last)
-                .build(),
-            // 2. Затем `NAME`
-            Rule::builder()
-                .name(Name::or([Name::exact(NAME)]))
-                .value(Value::All)
-                .build(),
-            // 3. Затем всё остальное, КРОМЕ `AUTHOR`, `DESCRIPTION`, `VERSION`
-            Rule::builder()
-                .name(Name::and([
-                    Name::All,
-                    Name::not(Name::or(vec![
-                        Name::exact(AUTHOR),
-                        Name::exact(DESCRIPTION),
-                        Name::exact(VERSION),
-                    ])),
-                ]))
-                .value(Value::All)
-                .build(),
-            // 4. В самом конце `VERSION`
-            Rule::builder()
-                .name(Name::exact(VERSION))
-                .value(Value::All)
-                .build(),
-        ]);
-        println!("debug: {parameters:#?}");
-        println!("display: {parameters}");
-
-        let contents = ron::ser::to_string_pretty(&parameters, PRETTY_CONFIG.clone()).unwrap();
-        std::fs::write("path.ron", &contents).unwrap();
-        println!("contents: {contents}");
-    }
-
-    // #[test]
-    // fn test() {
-    //     let meta = Metadata {
-    //         name: "VIR-2699".to_owned(),
-    //         description: "Cat. No. 2699, Прогресс, Россия".to_owned(),
-    //         authors: vec![GVK.to_owned(), RAS.to_owned()],
-    //         parameters: Vec::new(),
-    //         versions: vec![Version(1, 2, 3), Version(0, 1, 2)],
-    //         dates: vec![date(2026, 09, 09), date(2026, 09, 11)],
-    //     };
-    //     println!("meta: {meta:#?}");
-
-    //     // println!(r#"Dates::All: "{}""#, meta.format().date(Value::All).build());
-    //     // println!(
-    //     //     r#"Dates::First: "{}""#,
-    //     //     meta.format().date(Value::First).build()
-    //     // );
-    //     // println!(
-    //     //     r#"Dates::Last: "{}""#,
-    //     //     meta.format().date(Value::Last).build()
-    //     // );
-    //     // println!(r#"default: "{}""#, meta.format().build());
-    //     println!(r#"default: "{}""#, meta.format().build());
-    //     println!(
-    //         r#"All: "{}""#,
-    //         meta.format()
-    //             .parameter_format(Some(ParameterFormat::new(DATE, Value::All)))
-    //             .parameter_format(Some(ParameterFormat::new(NAME, Value::All)))
-    //             .parameter_format(None)
-    //             .parameter_format(Some(ParameterFormat::new(VERSION, Value::All)))
-    //     );
-
-    //     let contents = ron::ser::to_string_pretty(&meta, PRETTY_CONFIG.clone()).unwrap();
-    //     std::fs::write("path.ron", &contents).unwrap();
-    //     println!("contents: {contents:?}");
-    // }
-
-    // #[test]
-    // fn default() {
-    //     let meta = Metadata::default();
-    //     println!(
-    //         r#"Dates::All: "{}""#,
-    //         meta.format().date(Value::All).build()
-    //     );
-    //     println!(
-    //         r#"Dates::First: "{}""#,
-    //         meta.format().date(Value::First).build()
-    //     );
-    //     println!(
-    //         r#"Dates::Last: "{}""#,
-    //         meta.format().date(Value::Last).build()
-    //     );
-    //     println!(r#"meta: "{}""#, meta.format().build());
-    // }
 }

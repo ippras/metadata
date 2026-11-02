@@ -20,3 +20,6 @@ pub const VARIETY: &str = "Variety";
 
 // pub const DEFAULT_DATE: &str = "1970-01-01";
 // pub const DEFAULT_VERSION: &str = "0.0.0";
+
+const GVK: &str = "Giorgi Vladimirovich Kazakov";
+const RAS: &str = "Roman Alexandrovich Sidorov";
