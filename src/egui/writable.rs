@@ -1,103 +1,76 @@
 // TODO: TextEdit::singleline lost_focus: https://github.com/emilk/egui/issues/2142
 
-use std::sync::LazyLock;
-
 use crate::{
     Metadata, Parameter,
-    r#const::{AUTHOR, DATE, DESCRIPTION, IDENTIFIER, NAME, VERSION},
-    egui::EQUAL,
+    r#const::{DATE, DESCRIPTION, IDENTIFIER},
     rule::ALL_ALL_ASCENDING,
 };
 use egui::{
-    Button, DragValue, Event, Grid, Popup, PopupCloseBehavior, TextEdit, TextStyle, TextWrapMode,
-    Ui, Widget,
-    cache::{ComputerMut, FrameCache},
-    containers::menu::{MenuButton, MenuConfig},
+    Align, Button, DragValue, InnerResponse, Layout, Response, TextEdit, TextStyle, Ui, Widget,
 };
-use egui_extras::{Column, DatePickerButton, TableBody, TableBuilder};
-use egui_l10n::ContextExt;
+use egui_extras::{Column, DatePickerButton, TableBuilder};
 use egui_phosphor::regular::{MINUS, PLUS, SORT_ASCENDING};
 
-// pub static SORT_RULES: LazyLock<[Rule; 9]> = LazyLock::new(|| {
-//     [
-//         Rule::builder()
-//             .name(Name::exact(AUTHOR))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(DATE))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(DESCRIPTION))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(IDENTIFIER))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(LIPIDS))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(NAME))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(STEREOSPECIFIC_NUMBERS))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::exact(VERSION))
-//             .sort(Order::Ascending)
-//             .build(),
-//         Rule::builder()
-//             .name(Name::All)
-//             .sort(Order::Ascending)
-//             .build(),
-//     ]
-// });
-
-/// Writable parameters widget
-pub struct Writable<'a> {
-    parameters: &'a mut Metadata,
-    // sort: &'a [&'a Rule],
+/// Какой редактор нужен значению параметра; определяется по имени.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ValueKind {
+    Date,
+    Identifier,
+    Description,
+    Text,
 }
 
-impl<'a> Writable<'a> {
-    pub fn new(parameters: &'a mut Metadata) -> Self {
-        Self {
-            parameters,
-            // sort: &[&ALL_ALL_ASCENDING],
+impl ValueKind {
+    fn of(name: &str) -> Self {
+        match name {
+            DATE => Self::Date,
+            IDENTIFIER => Self::Identifier,
+            DESCRIPTION => Self::Description,
+            _ => Self::Text,
         }
     }
 }
 
-impl Writable<'_> {
-    pub fn show(&mut self, ui: &mut Ui) {
-        let mut sort_clicked = false;
-        let mut to_remove = Vec::new();
+/// Итог отрисовки таблицы: что изменилось и какие действия запросил пользователь.
+#[derive(Default)]
+struct Outcome {
+    changed: bool,
+    remove: Option<usize>,
+    sort: bool,
+}
 
+/// Виджет редактирования параметров метаданных.
+pub struct Writable<'a> {
+    metadata: &'a mut Metadata,
+}
+
+impl<'a> Writable<'a> {
+    pub fn new(metadata: &'a mut Metadata) -> Self {
+        Self { metadata }
+    }
+
+    /// Рисует таблицу. Структуру `Metadata` не меняет: удаление и сортировка
+    /// выполняются после отрисовки, чтобы не менять список во время обхода.
+    fn table(&mut self, ui: &mut Ui) -> Outcome {
+        let mut outcome = Outcome::default();
         let header_height = ui.text_style_height(&TextStyle::Heading);
-        let body_height = ui.text_style_height(&TextStyle::Body);
-        let width = ui.style().spacing.text_edit_width;
-        // Отрисовываем таблицу параметров
+        let row_height = ui.text_style_height(&TextStyle::Body);
+        let name_width = ui.style().spacing.text_edit_width;
+        let is_empty = self.metadata.is_empty();
+        let rows = self.metadata.len();
+
         TableBuilder::new(ui)
-            .striped(true) // Полосатый фон для лучшей читаемости строк
+            .striped(true)
             .resizable(true)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto().resizable(false)) // Кнопка удаления (MINUS)
-            .column(Column::auto_with_initial_suggestion(width)) // Поле ключа (Name)
-            .column(Column::remainder()) // Поле значения (Value)
-            // .column(Column::auto_with_initial_suggestion(width)) // Поле значения (Value)
+            .cell_layout(Layout::left_to_right(Align::Center))
+            .column(Column::auto().resizable(false)) // Удаление
+            .column(Column::auto_with_initial_suggestion(name_width)) // Имя
+            .column(Column::remainder()) // Значение
             .header(header_height, |mut header| {
                 header.col(|ui| {
-                    ui.add_enabled_ui(!self.parameters.is_empty(), |ui| {
-                        if ui.button(SORT_ASCENDING).clicked() {
-                            sort_clicked = true;
-                        }
-                    });
+                    outcome.sort = ui
+                        .add_enabled(!is_empty, Button::new(SORT_ASCENDING))
+                        .clicked();
                 });
                 header.col(|ui| {
                     ui.heading("Name");
@@ -107,90 +80,141 @@ impl Writable<'_> {
                 });
             })
             .body(|body| {
-                body.rows(body_height, self.parameters.len(), |mut row| {
+                body.rows(row_height, rows, |mut row| {
                     let index = row.index();
-                    let parameter = &mut self.parameters[index];
-
-                    // Столбец 1: Кнопка удаления
+                    let parameter = &mut self.metadata[index];
                     row.col(|ui| {
                         if ui.button(MINUS).clicked() {
-                            to_remove.push(index);
+                            outcome.remove = Some(index);
                         }
                     });
-
-                    // Столбец 2: Поле ключа (имени)
                     row.col(|ui| {
-                        let response = TextEdit::singleline(&mut parameter.name)
-                            .desired_width(f32::INFINITY) // Заполняем всю ширину колонки
-                            .ui(ui);
-                        if response.lost_focus() || response.clicked_elsewhere() {
-                            parameter.name = parameter.name.trim().to_owned();
-                        }
+                        outcome.changed |= name_editor(ui, &mut parameter.name);
                     });
-
-                    // Столбец 4: Поле значения со специальными эдиторами
                     row.col(|ui| {
-                        match &*parameter.name {
-                            DATE => {
-                                let mut date = parameter.value.parse().unwrap_or_default();
-                                if DatePickerButton::new(&mut date)
-                                    .id_salt(&ui.next_auto_id().value().to_string())
-                                    .ui(ui)
-                                    .changed()
-                                {
-                                    parameter.value = date.to_string();
-                                }
-                            }
-                            IDENTIFIER => {
-                                let mut number = parameter.value.parse::<u64>().unwrap_or(0);
-                                if DragValue::new(&mut number).speed(0.1).ui(ui).changed() {
-                                    parameter.value = number.to_string();
-                                }
-                            }
-                            DESCRIPTION => {
-                                // Многострочный редактор для описания
-                                let response = TextEdit::multiline(&mut parameter.value)
-                                    // .desired_width(f32::INFINITY)
-                                    .ui(ui);
-                                if response.lost_focus() || response.clicked_elsewhere() {
-                                    parameter.value = parameter.value.trim().to_owned();
-                                }
-                            }
-                            _ => {
-                                // Стандартный однострочный редактор для всех остальных
-                                let response = TextEdit::singleline(&mut parameter.value)
-                                    // .desired_width(f32::INFINITY)
-                                    .ui(ui);
-                                if response.lost_focus() || response.clicked_elsewhere() {
-                                    parameter.value = parameter.value.trim().to_owned();
-                                }
-                            }
-                        }
+                        outcome.changed |= value_editor(ui, index, parameter);
                     });
                 });
             });
+        outcome
+    }
+}
 
-        // Обработка отложенных действий (удаление и сортировка)
-        // Выполняем после отрисовки таблицы, чтобы избежать проблем с заимствованием (borrow checker)
+impl Widget for Writable<'_> {
+    fn ui(mut self, ui: &mut Ui) -> Response {
+        let InnerResponse {
+            inner: changed,
+            mut response,
+        } = ui.scope(|ui| {
+            let outcome = self.table(ui);
+            let mut changed = outcome.changed;
 
-        if !to_remove.is_empty() {
-            let mut i = 0;
-            self.parameters.retain_mut(|_| {
-                let keep = !to_remove.contains(&i);
-                i += 1;
-                keep
-            });
+            if let Some(index) = outcome.remove {
+                self.metadata.remove(index);
+                changed = true;
+            }
+            if outcome.sort {
+                clean_and_sort(self.metadata);
+                changed = true;
+            }
+            if ui.button(PLUS).clicked() {
+                self.metadata.push(Parameter::default());
+                changed = true;
+            }
+            changed
+        });
+        if changed {
+            response.mark_changed();
         }
+        response
+    }
+}
 
-        if sort_clicked {
-            self.parameters
-                .retain_mut(|parameter| !parameter.name.is_empty() || !parameter.value.is_empty());
-            self.parameters.filter_and_sort([&*ALL_ALL_ASCENDING]);
-        }
+/// Убирает полностью пустые параметры и сортирует остальные.
+fn clean_and_sort(metadata: &mut Metadata) {
+    metadata.retain(|parameter| !parameter.name.is_empty() || !parameter.value.is_empty());
+    metadata.filter_and_sort([&*ALL_ALL_ASCENDING]);
+}
 
-        // Кнопка добавления
-        if ui.button(PLUS).clicked() {
-            self.parameters.push(Parameter::default());
+/// Редактор имени. Возвращает `true`, если имя изменилось.
+fn name_editor(ui: &mut Ui, name: &mut String) -> bool {
+    let response = TextEdit::singleline(&mut *name)
+        .desired_width(f32::INFINITY)
+        .ui(ui);
+    finish_edit(&response, name)
+}
+
+/// Выбирает редактор по имени параметра. Возвращает `true`, если значение изменилось.
+fn value_editor(ui: &mut Ui, index: usize, parameter: &mut Parameter) -> bool {
+    match ValueKind::of(&parameter.name) {
+        ValueKind::Date => date_editor(ui, index, &mut parameter.value),
+        ValueKind::Identifier => identifier_editor(ui, &mut parameter.value),
+        ValueKind::Description => {
+            let response = TextEdit::multiline(&mut parameter.value).ui(ui);
+            finish_edit(&response, &mut parameter.value)
         }
+        ValueKind::Text => {
+            let response = TextEdit::singleline(&mut parameter.value).ui(ui);
+            finish_edit(&response, &mut parameter.value)
+        }
+    }
+}
+
+fn date_editor(ui: &mut Ui, index: usize, value: &mut String) -> bool {
+    // Некорректная строка показывается как 1970-01-01 и заменяется только при правке.
+    let mut date = value.parse().unwrap_or_default();
+    let changed = DatePickerButton::new(&mut date)
+        // .id_salt(ui.id().with(index))
+        .id_salt(&index.to_string())
+        .ui(ui)
+        .changed();
+    if changed {
+        *value = date.to_string();
+    }
+    changed
+}
+
+fn identifier_editor(ui: &mut Ui, value: &mut String) -> bool {
+    let mut number = value.parse::<u64>().unwrap_or_default();
+    let changed = DragValue::new(&mut number).speed(0.1).ui(ui).changed();
+    if changed {
+        *value = number.to_string();
+    }
+    changed
+}
+
+/// Обрезает пробелы по окончании редактирования. Возвращает `true`, если текст изменился.
+fn finish_edit(response: &Response, text: &mut String) -> bool {
+    let trimmed = (response.lost_focus() || response.clicked_elsewhere()) && trim_in_place(text);
+    response.changed() || trimmed
+}
+
+/// Обрезает пробелы с обоих концов без новой аллокации. `true`, если строка изменилась.
+fn trim_in_place(text: &mut String) -> bool {
+    let before = text.len();
+    text.truncate(text.trim_end().len());
+    let leading = text.len() - text.trim_start().len();
+    text.replace_range(..leading, "");
+    text.len() != before
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trims_both_ends() {
+        let mut text = String::from("  a b \t");
+        assert!(trim_in_place(&mut text));
+        assert_eq!(text, "a b");
+        assert!(!trim_in_place(&mut text));
+    }
+
+    #[test]
+    fn kind_by_name() {
+        assert_eq!(ValueKind::of(DATE), ValueKind::Date);
+        assert_eq!(ValueKind::of(IDENTIFIER), ValueKind::Identifier);
+        assert_eq!(ValueKind::of(DESCRIPTION), ValueKind::Description);
+        assert_eq!(ValueKind::of("Anything"), ValueKind::Text);
     }
 }

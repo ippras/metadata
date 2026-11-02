@@ -1,171 +1,28 @@
-use crate::{Parameters, rule::Name};
-use egui::{Atom, AtomExt, Atoms, IntoAtoms, RichText};
-use std::fmt::{Debug, Display, Formatter, Result};
+//! Метаданные в виде [`egui::Atoms`].
 
-// impl Parameters {
-//     pub fn format<'a>(&'a self) -> ParametersFormat<'a> {
-//         ParametersFormat::new(self)
-//     }
-// }
+use crate::{Metadata, rule::Rule};
+use egui::{Atoms, IntoAtoms};
+use std::borrow::Borrow;
 
-// Format parameters
-#[derive(Clone, Debug)]
-pub struct ParametersFormat<'a> {
-    parameters: &'a Parameters,
-    parameter_formats: Vec<ParameterFormat>,
+/// Параметры, отобранные и упорядоченные правилами, как атомы вида `{имя=значение}`.
+pub struct MetadataAtoms<'a, T> {
+    metadata: &'a Metadata,
+    rules: &'a [T],
 }
 
-impl<'a> ParametersFormat<'a> {
-    pub fn new(parameters: &'a Parameters) -> Self {
-        Self {
-            parameters,
-            parameter_formats: Vec::new(),
+impl<'a, T> MetadataAtoms<'a, T> {
+    pub fn new(metadata: &'a Metadata, rules: &'a [T]) -> Self {
+        Self { metadata, rules }
+    }
+}
+
+impl<'a, T: Borrow<Rule>> IntoAtoms<'a> for MetadataAtoms<'_, T> {
+    fn collect(self, atoms: &mut Atoms<'a>) {
+        // `filter_and_sort` мутирует набор, поэтому работаем с копией.
+        let mut selected = self.metadata.clone();
+        selected.filter_and_sort(self.rules);
+        for parameter in &selected {
+            atoms.push_right(format!("{{{parameter}}}"));
         }
-    }
-
-    pub fn push(&mut self, parameter_format: ParameterFormat) {
-        self.parameter_formats.push(parameter_format);
-    }
-}
-
-impl Display for ParametersFormat<'_> {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        for parameter_format in &self.parameter_formats {
-            // Создаем итератор, который оставляет только подходящие под фильтр параметры
-            let mut matched_parameters = self
-                .parameters
-                .iter()
-                .filter(|parameter| parameter_format.rule.matches(&parameter.name));
-            match parameter_format.value {
-                Value::All => {
-                    for parameter in matched_parameters {
-                        write!(f, "{{{parameter}}}")?;
-                    }
-                }
-                Value::First => {
-                    if let Some(parameter) = matched_parameters.next() {
-                        write!(f, "{{{parameter}}}")?;
-                    }
-                }
-                Value::Last => {
-                    if let Some(parameter) = matched_parameters.last() {
-                        write!(f, "{{{parameter}}}")?;
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
-/// Parameter format
-#[derive(Clone, Debug)]
-pub struct ParameterFormat {
-    pub rule: Name,
-    pub value: Value,
-}
-
-impl ParameterFormat {
-    pub fn new(rule: Name, value: Value) -> Self {
-        Self { rule, value }
-    }
-
-    pub fn all(rule: Name) -> Self {
-        Self {
-            rule,
-            value: Value::All,
-        }
-    }
-}
-
-/// Value
-#[derive(Clone, Copy, Debug)]
-pub enum Value {
-    All,
-    First,
-    Last,
-}
-
-//
-
-/// Align
-#[derive(Clone, Copy, Debug, Default)]
-pub enum Align {
-    Left,
-    #[default]
-    Right,
-}
-
-#[cfg(feature = "egui")]
-impl IntoAtoms<'_> for Parameters {
-    fn collect(self, atoms: &mut Atoms<'_>) {
-        for parameter in &self {
-            // let mut matched_parameters = self
-            //     .iter()
-            //     .filter(|parameter| parameter.rule.matches(&parameter.name));
-            match parameter.value {
-                Value::All => {
-                    for parameter in matched_parameters {
-                        atoms.push_right(&parameter.name);
-                    }
-                }
-                Value::First => {
-                    if let Some(parameter) = matched_parameters.next() {
-                        atoms.push_right(&parameter.name);
-                    }
-                }
-                Value::Last => {
-                    if let Some(parameter) = matched_parameters.last() {
-                        atoms.push_right(&parameter.name);
-                    }
-                }
-            }
-        }
-
-        // if self.dates && !self.metadata.dates.is_empty() {
-        //     if let Some(date) = self.metadata.dates.last() {
-        //         atoms.push_left(RichText::new(date.to_string()).weak());
-        //     }
-        // }
-
-        // // Name
-        // atoms.push_right(&self.metadata.name);
-        // // Dates
-        // if !self.metadata.dates.is_empty() {
-        //     match self.date {
-        //         Some(Value::All) => {
-        //             for date in &self.metadata.dates {
-        //                 atoms.push_left(RichText::new(date.to_string()).weak());
-        //             }
-        //         }
-        //         Some(Value::First) => {
-        //             if let Some(date) = self.metadata.dates.first() {
-        //                 atoms.push_left(RichText::new(date.to_string()).weak());
-        //             }
-        //         }
-        //         Some(Value::Last) => {
-        //             if let Some(date) = self.metadata.dates.last() {
-        //                 atoms.push_left(RichText::new(date.to_string()).weak());
-        //             }
-        //         }
-        //         _ => {}
-        //     }
-        // }
-        // // Parameters
-        // if self.parameters && !self.metadata.parameters.is_empty() {
-        //     atoms.push_right(
-        //         Atom::from(format!(
-        //             "{{{}}}",
-        //             self.metadata.parameters.iter().format("}{")
-        //         ))
-        //         .atom_shrink(true),
-        //     );
-        // } else {
-        //     atoms.push_right(Atom::default().atom_shrink(true));
-        // }
-        // // Versions
-        // if self.versions && !self.metadata.versions.is_empty() {
-        //     atoms.push_right(format!("[{}]", self.metadata.versions.iter().format("][")));
-        // }
     }
 }

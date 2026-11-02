@@ -1,11 +1,15 @@
+//! Метаданные вместе с таблицей данных.
+
 use crate::Metadata;
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 
-/// MetaDataFrame
+/// Таблица данных с метаданными.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct MetaDataFrame<M = Metadata, D = DataFrame> {
+    /// Метаданные.
     pub meta: M,
+    /// Данные.
     pub data: D,
 }
 

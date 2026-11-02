@@ -1,50 +1,59 @@
-// pub mod atoms;
+//! egui-виджеты для [`Metadata`](crate::Metadata).
+//!
+//! ```ignore
+//! ui.add(Readable::new(&metadata));
+//! ui.add(Writable::new(&mut metadata));
+//! ```
+
+pub mod atoms;
 pub mod readable;
 pub mod writable;
 
-use crate::{
-    Metadata,
-    egui::{readable::Readable, writable::Writable},
-};
-use egui::{Response, Ui};
-use std::borrow::{Borrow, BorrowMut};
+pub use self::{atoms::MetadataAtoms, readable::Readable, writable::Writable};
 
-pub const EQUAL: &str = "=";
-pub const SEMICOLON: &str = ";";
+// use crate::{
+//     Metadata,
+//     egui::{readable::Readable, writable::Writable},
+// };
+// use egui::{Response, Ui};
+// use std::borrow::{Borrow, BorrowMut};
 
-/// Metadata widget
-pub struct MetadataWidget<T> {
-    metadata: T,
-}
+// pub const EQUAL: &str = "=";
+// pub const SEMICOLON: &str = ";";
 
-impl<T> MetadataWidget<T> {
-    pub fn new(metadata: T) -> Self {
-        Self { metadata }
-    }
-}
+// /// Metadata widget
+// pub struct MetadataWidget<T> {
+//     metadata: T,
+// }
 
-impl MetadataWidget<&Metadata> {
-    pub fn show(self, ui: &mut Ui) {
-        self.readable(ui);
-    }
-}
+// impl<T> MetadataWidget<T> {
+//     pub fn new(metadata: T) -> Self {
+//         Self { metadata }
+//     }
+// }
 
-impl MetadataWidget<&mut Metadata> {
-    pub fn show(mut self, ui: &mut Ui) {
-        self.writable(ui);
-    }
-}
+// impl MetadataWidget<&Metadata> {
+//     pub fn show(self, ui: &mut Ui) {
+//         self.readable(ui);
+//     }
+// }
 
-impl<T: Borrow<Metadata>> MetadataWidget<T> {
-    /// Readable
-    pub fn readable(&self, ui: &mut Ui) -> Response {
-        Readable::new(self.metadata.borrow()).show(ui)
-    }
-}
+// impl MetadataWidget<&mut Metadata> {
+//     pub fn show(mut self, ui: &mut Ui) {
+//         self.writable(ui);
+//     }
+// }
 
-impl<T: BorrowMut<Metadata>> MetadataWidget<T> {
-    /// Writable
-    pub fn writable(&mut self, ui: &mut Ui) {
-        Writable::new(self.metadata.borrow_mut()).show(ui);
-    }
-}
+// impl<T: Borrow<Metadata>> MetadataWidget<T> {
+//     /// Readable
+//     pub fn readable(&self, ui: &mut Ui) -> Response {
+//         Readable::new(self.metadata.borrow()).show(ui)
+//     }
+// }
+
+// impl<T: BorrowMut<Metadata>> MetadataWidget<T> {
+//     /// Writable
+//     pub fn writable(&mut self, ui: &mut Ui) {
+//         Writable::new(self.metadata.borrow_mut()).show(ui);
+//     }
+// }

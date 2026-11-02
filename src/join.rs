@@ -1,15 +1,27 @@
+//! Объединение нескольких наборов метаданных.
+
 use crate::{Metadata, rule::Rule};
 use std::borrow::Borrow;
 
+/// Склеивает параметры всех наборов и приводит результат к виду, заданному `rules`.
 pub fn join_with<'a, T: Borrow<Rule>>(
-    iter: impl Iterator<Item = &'a Metadata> + Clone,
+    metadata: impl IntoIterator<Item = &'a Metadata>,
     rules: impl AsRef<[T]>,
 ) -> Metadata {
-    let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
-    let mut metadata = Metadata(parameters);
-    metadata.filter_and_sort(rules);
-    metadata
+    let mut joined: Metadata = metadata.into_iter().flatten().cloned().collect();
+    joined.filter_and_sort(rules);
+    joined
 }
+
+// pub fn join_with<'a, T: Borrow<Rule>>(
+//     iter: impl Iterator<Item = &'a Metadata> + Clone,
+//     rules: impl AsRef<[T]>,
+// ) -> Metadata {
+//     let parameters = iter.flat_map(|metadata| &metadata.0).cloned().collect();
+//     let mut metadata = Metadata(parameters);
+//     metadata.filter_and_sort(rules);
+//     metadata
+// }
 
 // pub fn longest_common_prefix(strings: Vec<&str>) -> &str {
 //     if strings.is_empty() {

@@ -1,3 +1,4 @@
+use egui::Widget as _;
 use egui_l10n::{ContextExt, Localization, langid};
 use jiff::civil::date;
 use metadata::{
@@ -57,8 +58,7 @@ impl DemoApp {
 impl eframe::App for DemoApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ui, |ui| {
-            let mut writable = Writable::new(&mut self.parameters);
-            writable.show(ui);
+            Writable::new(&mut self.parameters).ui(ui);
         });
     }
 }
