@@ -9,7 +9,10 @@ pub mod atoms;
 pub mod readable;
 pub mod writable;
 
-pub use self::{atoms::MetadataAtoms, readable::Readable, writable::Writable};
+pub use self::{
+    atoms::MetadataAtoms, readable::Readable as ReadableMetadata,
+    writable::Writable as WritableMetadata,
+};
 
 // use crate::{
 //     Metadata,
