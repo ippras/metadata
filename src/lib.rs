@@ -57,6 +57,32 @@ impl Metadata {
             .find_map(|parameter| (parameter.name == name).then_some(&*parameter.value))
     }
 
+    /// Значения всех параметров с данным именем в порядке следования.
+    fn values<'a>(&'a self, name: &'a str) -> impl Iterator<Item = &'a String> {
+        self.0
+            .iter()
+            .filter(move |parameter| parameter.name == name)
+            .map(|parameter| &parameter.value)
+    }
+
+    /// Сравнивает две метаданные по списку полей: сначала по первому полю,
+    /// при равенстве по следующему и т. д. Если поля нет, значений ноль,
+    /// и такая запись идёт раньше (при `Descending`, наоборот, позже).
+    pub fn cmp_by<S: AsRef<str>>(&self, other: &Self, sort: &[(S, Order)]) -> std::cmp::Ordering {
+        for (name, order) in sort {
+            let name = name.as_ref();
+            let ordering = self.values(name).cmp(other.values(name));
+            let ordering = match order {
+                Order::Ascending => ordering,
+                Order::Descending => ordering.reverse(),
+            };
+            if ordering.is_ne() {
+                return ordering;
+            }
+        }
+        std::cmp::Ordering::Equal
+    }
+
     pub fn contains_name_value(&self, name: &str, value: &str) -> bool {
         self.0
             .iter()
