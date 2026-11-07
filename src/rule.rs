@@ -1,6 +1,6 @@
 //! Правила отбора, дедупликации и сортировки параметров метаданных.
 
-use crate::r#const::{AUTHOR, DATE, IDENTIFIER, NAME, VERSION};
+use crate::r#const::{AUTHOR, DATE, IDENTIFIER, INDEX, NAME, VERSION};
 use std::{cmp::Ordering, sync::LazyLock};
 use typed_builder::TypedBuilder;
 
@@ -19,6 +19,8 @@ pub static ALL_AUTHORS: LazyLock<Rule> = LazyLock::new(|| Rule::exact(AUTHOR, Va
 pub static ALL_DATES: LazyLock<Rule> = LazyLock::new(|| Rule::exact(DATE, Value::All));
 /// All identifiers
 pub static ALL_IDENTIFIERS: LazyLock<Rule> = LazyLock::new(|| Rule::exact(IDENTIFIER, Value::All));
+/// All indexes
+pub static ALL_INDEXES: LazyLock<Rule> = LazyLock::new(|| Rule::exact(INDEX, Value::All));
 /// All names
 pub static ALL_NAMES: LazyLock<Rule> = LazyLock::new(|| Rule::exact(NAME, Value::All));
 /// All versions
