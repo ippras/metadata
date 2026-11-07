@@ -9,6 +9,7 @@ pub const DATES: &str = "Dates";
 pub const DESCRIPTION: &str = "Description";
 pub const IDENTIFIER: &str = "Identifier";
 pub const IDENTIFIERS: &str = "Identifiers";
+pub const INDEX: &str = "Index";
 pub const NAME: &str = "Name";
 pub const NAMES: &str = "Names";
 pub const VERSION: &str = "Version";

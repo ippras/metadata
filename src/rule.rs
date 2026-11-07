@@ -1,4 +1,4 @@
-use crate::r#const::{AUTHOR, DATE, IDENTIFIER, NAME, VERSION};
+use crate::r#const::{AUTHOR, DATE, IDENTIFIER, INDEX, NAME, VERSION};
 use std::sync::LazyLock;
 use typed_builder::TypedBuilder;
 
@@ -31,6 +31,14 @@ pub static ALL_DATES: LazyLock<Rule> = LazyLock::new(|| {
 pub static ALL_IDENTIFIERS: LazyLock<Rule> = LazyLock::new(|| {
     Rule::builder()
         .name(Name::exact(IDENTIFIER))
+        .value(Value::All)
+        .build()
+});
+
+/// All indexes
+pub static ALL_INDEXES: LazyLock<Rule> = LazyLock::new(|| {
+    Rule::builder()
+        .name(Name::exact(INDEX))
         .value(Value::All)
         .build()
 });
